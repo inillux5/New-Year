@@ -25,7 +25,25 @@
   }
   canvas.layer { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   #snow { z-index: 1; }
-  #fire { z-index: 2; }
+  #fire { z-index: 50; }
+  .giftov { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(5,12,30,.82); opacity: 0; pointer-events: none; transition: opacity .35s; }
+  .giftov.show { opacity: 1; pointer-events: auto; }
+  .giftbox { position: relative; width: 190px; height: 190px; display: grid; place-items: center; }
+  .gift { width: 170px; height: 170px; position: relative; overflow: visible; }
+  .giftov.show .gift { animation: giftpop .5s ease both; }
+  .giftov.shake .gift { animation: giftpop .5s ease both, wob .55s .5s ease-in-out infinite; }
+  @keyframes giftpop { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes wob { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-9deg); } 40% { transform: rotate(9deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(6deg); } }
+  #giftLid { transform-box: fill-box; transform-origin: center; transition: transform .7s cubic-bezier(.2,.8,.3,1), opacity .7s; }
+  .giftov.open #giftLid { transform: translateY(-120px) rotate(-24deg); opacity: 0; }
+  .rays { position: absolute; width: 560px; height: 560px; max-width: 150vw; border-radius: 50%; opacity: 0; transition: opacity .5s;
+    background: repeating-conic-gradient(rgba(255,211,107,.55) 0 9deg, transparent 9deg 18deg);
+    -webkit-mask: radial-gradient(circle, #000 5%, transparent 68%); mask: radial-gradient(circle, #000 5%, transparent 68%);
+    animation: spinrays 8s linear infinite; }
+  .giftov.open .rays { opacity: 1; }
+  @keyframes spinrays { to { transform: rotate(360deg); } }
+  .gifttext { margin: 18px 0 0; font-size: 26px; font-weight: 700; color: var(--gold); text-shadow: 0 0 18px rgba(255,211,107,.6); text-align: center; position: relative; }
   main { position: relative; z-index: 3; max-width: 1040px; margin: 0 auto; padding: 20px 16px 60px; }
 
   body { font-size: 17px; line-height: 1.4; }
@@ -119,12 +137,6 @@
     <button id="actBtn" class="main"></button>
   </section>
 
-  <section class="play">
-    <p class="scene" id="sceneName"></p>
-    <p id="hint"></p>
-    <div class="stagewrap"><canvas id="stage"></canvas></div>
-  </section>
-
   <section id="next">
     <div class="box" id="pending">
       <p id="pendingText"></p>
@@ -149,6 +161,30 @@
     <h2>Подарки от нас</h2>
     <div class="goods" id="goods"></div>
   </section>
+
+  <section class="play">
+    <p class="scene" id="sceneName"></p>
+    <p id="hint"></p>
+    <div class="stagewrap"><canvas id="stage"></canvas></div>
+  </section>
+
+  <div class="giftov" id="giftov">
+    <div class="giftbox">
+      <div class="rays"></div>
+      <svg class="gift" viewBox="0 0 170 170" aria-hidden="true">
+        <rect x="25" y="80" width="120" height="75" rx="6" fill="#d6322b"/>
+        <rect x="77" y="80" width="16" height="75" fill="#ffd36b"/>
+        <g id="giftLid">
+          <rect x="18" y="58" width="134" height="26" rx="6" fill="#e8473f"/>
+          <rect x="77" y="58" width="16" height="26" fill="#ffd36b"/>
+          <ellipse cx="62" cy="50" rx="20" ry="12" fill="none" stroke="#ffd36b" stroke-width="7"/>
+          <ellipse cx="108" cy="50" rx="20" ry="12" fill="none" stroke="#ffd36b" stroke-width="7"/>
+          <circle cx="85" cy="56" r="8" fill="#ffd36b"/>
+        </g>
+      </svg>
+    </div>
+    <p class="gifttext" id="giftText"></p>
+  </div>
 
   <div class="toast" id="toast" hidden></div>
   <div class="testbar" id="testbar" hidden>
@@ -310,13 +346,37 @@
     $('toast').textContent = txt; $('toast').hidden = false;
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { $('toast').hidden = true; }, 1800);
   }
+  // подарок: появляется, трясётся, крышка слетает, лучи и конфетти, потом сам закрывается (по нажатию можно пропустить)
+  var giftTimers = [];
+  function giftAnim(done) {
+    var ov = $('giftov'), finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      giftTimers.forEach(clearTimeout); giftTimers = [];
+      ov.classList.remove('show', 'shake', 'open');
+      done();
+    }
+    ov.classList.remove('open'); ov.classList.add('show', 'shake');
+    $('giftText').textContent = 'Тебе подарок!';
+    giftTimers.push(setTimeout(function () {
+      ov.classList.remove('shake'); ov.classList.add('open');
+      $('giftText').textContent = 'С Новым годом!';
+      confettiBurst();
+      for (var k = 0; k < 3; k++) setTimeout(function () { launch(); }, k * 250);
+    }, 1500));
+    giftTimers.push(setTimeout(finish, 3400));
+    ov.onclick = finish;
+  }
   var busy = false;
   function ritual(delay) {
     busy = true;
     $('actBtn').disabled = true; $('actBtn').textContent = 'Открываем подарок...';
     setTimeout(function () {
-      $('pending').hidden = true; $('reveal').hidden = false;
-      $('actBtn').textContent = 'Подарок открыт, крути вниз';
+      giftAnim(function () {
+        $('pending').hidden = true; $('reveal').hidden = false;
+        $('actBtn').textContent = 'Подарок открыт, крути вниз';
+      });
     }, delay);
   }
   function showDone() { $('doneBtn').hidden = true; $('doneNote').hidden = false; $('shop').hidden = false; }
@@ -356,7 +416,9 @@
     stage.width = Math.round(w * dpr); stage.height = Math.round(h * dpr);
     stage.style.height = h + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    W = w; H = h; sc = Math.min(W / 820, H / 520);
+    W = w; H = h;
+    // на узком экране масштаб берём больше (по высоте), иначе всё получается крошечным; на широком — как раньше
+    sc = W < 600 ? Math.min(H / 520 * .85, W / 820 * 1.7) : Math.min(W / 820, H / 520);
   }
   window.addEventListener('resize', sizeStage); sizeStage();
 
@@ -469,7 +531,7 @@
       h.smoke.forEach(function (p) {
         p.l += dt;
         var sx = x + bw * .24 + p.l * 16 + Math.sin(p.l * 2) * 4, sy = y - rh * .9 - p.l * 45;
-        ctx.globalAlpha = .35 * (1 - p.l / 3); circ(sx, sy, 4 + p.l * 5, '#dfe6f5'); ctx.globalAlpha = 1;
+        ctx.globalAlpha = Math.max(0, .35 * (1 - p.l / 3)); circ(sx, sy, 4 + Math.min(p.l, 3) * 5, '#dfe6f5'); ctx.globalAlpha = 1;
       });
     }
 
@@ -609,7 +671,7 @@
     for (k = 0; k < 45; k++) flies.push({ x: Math.random(), y: .3 + Math.random() * .6, a: Math.random() * 6.28, s: .5 + Math.random() });
     function treeGeo() {
       var top = H * .12, base = H * .88, th = base - top;
-      return { cx: W * .5, top: top, base: base, th: th, tw: th * .62 };
+      return { cx: W * .5, top: top, base: base, th: th, tw: Math.min(th * .62, W * .44) };
     }
     function firRow(baseY, h, count, col, par, ph) {
       for (var q = 0; q < count; q++) {
@@ -695,10 +757,10 @@
         ctx.fillStyle = '#3b2a1f'; ctx.fillRect(W * .07, H * .3, 18 * sc, H * .62);
         line(W * .07 + 9 * sc, H * .52, W * .26, H * .52, '#3b2a1f', 9 * sc);
         line(W * .1, H * .52 - 5 * sc, W * .25, H * .52 - 5 * sc, '#eef4ff', 3 * sc);
+        tree(dt); // ёлка позади, животные у её подножия впереди
         owlDraw(W * .19, H * .52 - 4 * sc);
-        deerDraw(W * .30, H * .91);
-        foxDraw(W * .76, H * .91);
-        tree(dt);
+        deerDraw(W * .26, H * .91);
+        foxDraw(W * .78, H * .91);
         // светлячки
         ctx.globalCompositeOperation = 'lighter';
         flies.forEach(function (f, q) {
@@ -716,8 +778,8 @@
       click: function (x, y) {
         var gg = treeGeo();
         if (Math.hypot(x - W * .19, y - (H * .52 - 25 * sc)) < 50 * sc * T) { owl.w = 1.5; say(W * .19, H * .52 - 70 * sc, 'Ух-ху!'); return; }
-        if (Math.hypot(x - (W * .30 + 20 * sc), y - (H * .91 - 60 * sc)) < 70 * sc * T) { deer.h = 1.2; say(W * .30 + 40 * sc, H * .91 - 130 * sc, 'Ту-ру-ру!'); return; }
-        if (Math.hypot(x - W * .76, y - (H * .91 - 30 * sc)) < 55 * sc * T) { fox.j = .9; say(W * .76, H * .91 - 100 * sc, 'Тяв!'); return; }
+        if (Math.hypot(x - (W * .26 + 20 * sc), y - (H * .91 - 60 * sc)) < 70 * sc * T) { deer.h = 1.2; say(W * .26 + 40 * sc, H * .91 - 130 * sc, 'Ту-ру-ру!'); return; }
+        if (Math.hypot(x - W * .78, y - (H * .91 - 30 * sc)) < 55 * sc * T) { fox.j = .9; say(W * .78, H * .91 - 100 * sc, 'Тяв!'); return; }
         if (y > gg.top - 15 && y < gg.base + 10 && Math.abs(x - gg.cx) < gg.tw / 2 * ((y - gg.top) / gg.th) + 14) {
           mode = (mode + 1) % modes.length; say(gg.cx, gg.top + gg.th * .3, modes[mode].n);
         }
@@ -807,7 +869,7 @@
             } else circ(bp.x, bp.y + 6, 4.5 * Math.max(sc, .8), '#3a3a58');
           }
         }
-        snowman();
+        var sv = sc; sc = sv * 1.4; snowman(); sc = sv; // снеговик крупнее остальных предметов
         // ракеты
         ctx.globalCompositeOperation = 'lighter';
         rockets = rockets.filter(function (r) {
@@ -847,13 +909,13 @@
           }
         }
         // снеговик
-        var g = geo();
-        if (Math.hypot(x - g.x, y - (g.base - 80 * sc)) < 100 * sc * T) {
+        var sv = sc; sc = sv * 1.4; var g = geo(); sc = sv;
+        if (Math.hypot(x - g.x, y - (g.base - 110 * sc)) < 120 * sc * T) {
           if (lvl < 5) {
-            lvl++; pop = .4; say(g.x, g.base - 190 * sc, sayLvl[lvl - 1]);
+            lvl++; pop = .4; say(g.x, g.base - 280 * sc, sayLvl[lvl - 1]);
             if (lvl === 5) { rocket(g.x - 120 * sc, H * .35); rocket(g.x + 120 * sc, H * .3, .3); }
           } else {
-            hop = .6; say(g.x, g.base - 210 * sc, pick(['Привет!', 'С Новым годом!', 'Холодно, но весело!'], ''));
+            hop = .6; say(g.x, g.base - 300 * sc, pick(['Привет!', 'С Новым годом!', 'Холодно, но весело!'], ''));
             rocket(g.x + (Math.random() - .5) * 200, H * (.25 + Math.random() * .15));
           }
           return;
@@ -936,17 +998,22 @@
   // ================= СЦЕНА 5: КАТОК С КАРУСЕЛЬЮ =================
   var rink = (function () {
     var stars = [], spin = 0, ang = 0, k;
-    var skaters = [{ a: 0, v: .5, c: '#e8473f', sp: 0 }, { a: 2, v: -.4, c: '#4dc3ff', sp: 0 }, { a: 4, v: .35, c: '#ffd34d', sp: 0 }, { a: 5.3, v: -.55, c: '#7dff7d', sp: 0 }];
+    var skaters = [{ a: 0, v: .22, c: '#e8473f', sp: 0 }, { a: 2, v: -.18, c: '#4dc3ff', sp: 0 }, { a: 4, v: .2, c: '#ffd34d', sp: 0 }, { a: 5.3, v: -.25, c: '#7dff7d', sp: 0 }];
     for (k = 0; k < 70; k++) stars.push({ x: Math.random(), y: Math.random() * .5, r: .4 + Math.random() * 1.1, p: Math.random() * 6 });
     function geo() { return { wx: W * .76, wy: H * .36, R: H * .26, rx: W * .3, ry: H * .085, cx: W * .36, cy: H * .83 }; }
-    function sk(x, y, s, col, sp) {
-      var sw = Math.sin(t * 5 + x) * 3 * s;
-      line(x - 3 * s, y - 14 * s, x - 3 * s + sw, y, '#222', 3 * s); line(x + 3 * s, y - 14 * s, x + 3 * s - sw, y, '#222', 3 * s);
-      ell(x, y - 24 * s, 7 * s, 11 * s, col);
-      circ(x, y - 39 * s, 5.5 * s, '#f6c9a8');
-      tri(x - 5.5 * s, y - 41 * s, x + 5.5 * s, y - 41 * s, x, y - 52 * s, col); circ(x, y - 52 * s, 2 * s, '#fff');
-      if (sp > 0) line(x - 14 * s * Math.cos(t * 20), y - 27 * s, x + 14 * s * Math.cos(t * 20), y - 27 * s, col, 3 * s);
-      else line(x - 11 * s, y - 28 * s, x + 11 * s, y - 26 * s, col, 3 * s);
+    // фигурист скользит: наклон по ходу движения (dir = 1 вправо, -1 влево), ноги почти не двигаются, на коньках лезвия
+    function sk(x, y, s, col, sp, dir) {
+      var lean = sp > 0 ? 0 : dir * .14, glide = sp > 0 ? 0 : Math.sin(t * 1.4 + x * .02) * 2 * s;
+      line(x - 2 * s, y - 14 * s, x - 2 * s - dir * (6 * s + glide), y - 1 * s, '#222', 3 * s);
+      line(x + 2 * s, y - 14 * s, x + 2 * s + dir * (3 * s - glide), y - 1 * s, '#222', 3 * s);
+      line(x - dir * 12 * s, y + 1 * s, x - dir * 2 * s, y + 1 * s, '#cfe6ff', 1.6 * s);
+      line(x + dir * 1 * s, y + 1 * s, x + dir * 10 * s, y + 1 * s, '#cfe6ff', 1.6 * s);
+      var hx = x + lean * 22 * s;
+      ell(x + lean * 8 * s, y - 24 * s, 7 * s, 11 * s, col, lean);
+      circ(hx, y - 39 * s, 5.5 * s, '#f6c9a8');
+      tri(hx - 5.5 * s, y - 41 * s, hx + 5.5 * s, y - 41 * s, hx, y - 52 * s, col); circ(hx, y - 52 * s, 2 * s, '#fff');
+      if (sp > 0) line(x - 14 * s * Math.cos(t * 14), y - 27 * s, x + 14 * s * Math.cos(t * 14), y - 27 * s, col, 3 * s);
+      else line(x - dir * 11 * s, y - 24 * s, x + dir * 12 * s, y - 29 * s, col, 3 * s);
     }
     function pos(a, g) {
       var y = g.cy + Math.sin(a.a) * g.ry;
@@ -997,9 +1064,9 @@
           circ(g.cx + Math.cos(a3) * (g.rx + 18 * sc), g.cy + Math.sin(a3) * (g.ry + 10 * sc), 3 * sc, ['#ff6b6b', '#ffd34d', '#5bd1ff'][k % 3]);
         }
         // фигуристы (дальние рисуются раньше)
-        var list = skaters.map(function (q) { q.a += q.v * dt * (q.sp > 0 ? 3 : 1); q.sp = Math.max(0, q.sp - dt); var p = pos(q, g); p.q = q; return p; })
+        var list = skaters.map(function (q) { q.a += q.v * dt * (q.sp > 0 ? 2.5 : 1); q.sp = Math.max(0, q.sp - dt); var p = pos(q, g); p.q = q; p.dir = -Math.sin(q.a) * q.v >= 0 ? 1 : -1; return p; })
           .sort(function (u, v) { return u.y - v.y; });
-        list.forEach(function (p) { sk(p.x, p.y, p.s, p.q.c, p.q.sp); });
+        list.forEach(function (p) { sk(p.x, p.y, p.s, p.q.c, p.q.sp, p.dir); });
         drawSnow(dt);
       },
       click: function (x, y) {
@@ -1065,15 +1132,23 @@
         starPath(tx, tb - th, 10 * Math.max(sc, .8), 4.5 * Math.max(sc, .8)); ctx.fillStyle = '#ffd95e'; ctx.fill();
         box(tx - 52 * sc, tb - 20 * sc, 34 * sc, 26 * sc, '#4a7fd6', '#ffd36b'); box(tx + 16 * sc, tb - 26 * sc, 36 * sc, 32 * sc, '#d6454f', '#f4f4f4');
         // кот
-        var cx0 = W * .4, cy0 = H * .9, bob = cat.z > 0 ? Math.sin(t * 10) * 1.5 * sc : 0;
-        ell(cx0, cy0 - 12 * sc + bob, 24 * sc, 13 * sc, '#d98c3a');
-        ell(cx0 - 20 * sc, cy0 - 6 * sc, 12 * sc, 6 * sc, '#c77a2c', .4);
-        circ(cx0 + 20 * sc, cy0 - 14 * sc + bob, 11 * sc, '#d98c3a');
-        tri(cx0 + 12 * sc, cy0 - 22 * sc + bob, cx0 + 16 * sc, cy0 - 30 * sc + bob, cx0 + 21 * sc, cy0 - 23 * sc + bob, '#d98c3a');
-        tri(cx0 + 22 * sc, cy0 - 23 * sc + bob, cx0 + 27 * sc, cy0 - 30 * sc + bob, cx0 + 30 * sc, cy0 - 21 * sc + bob, '#d98c3a');
-        line(cx0 + 15 * sc, cy0 - 14 * sc + bob, cx0 + 19 * sc, cy0 - 14 * sc + bob, '#3b2a1f', 1.6 * sc); line(cx0 + 23 * sc, cy0 - 14 * sc + bob, cx0 + 27 * sc, cy0 - 14 * sc + bob, '#3b2a1f', 1.6 * sc);
-        ctx.font = 'bold ' + Math.round(14 * Math.max(sc, .8)) + 'px "Segoe UI", Arial'; ctx.fillStyle = 'rgba(255,255,255,' + (.4 + .4 * Math.sin(t * 2)) + ')';
-        ctx.fillText('z', cx0 + 34 * sc, cy0 - 32 * sc - Math.abs(Math.sin(t)) * 6 * sc);
+        // кот: спит, а по клику просыпается (садится, открывает глаза, виляет хвостом) и через несколько секунд снова засыпает
+        var cx0 = W * .4, cy0 = H * .9, awake = cat.z > 0, up = awake ? Math.min(1, (4 - cat.z) * 3, cat.z * 3) : 0;
+        var hx = cx0 + (20 - 6 * up) * sc, hy = cy0 - (14 + 18 * up) * sc;
+        ell(cx0 - 26 * sc, cy0 - (6 + 12 * up) * sc, 12 * sc, 5 * sc, '#c77a2c', .4 - up * (1 + Math.sin(t * 8) * .4));
+        ell(cx0, cy0 - (12 + 4 * up) * sc, 24 * sc, (13 + 4 * up) * sc, '#d98c3a');
+        circ(hx, hy, 11 * sc, '#d98c3a');
+        tri(hx - 8 * sc, hy - 8 * sc, hx - 4 * sc, hy - 17 * sc, hx + 1 * sc, hy - 9 * sc, '#d98c3a');
+        tri(hx + 2 * sc, hy - 9 * sc, hx + 7 * sc, hy - 17 * sc, hx + 10 * sc, hy - 7 * sc, '#d98c3a');
+        if (awake) {
+          circ(hx - 4 * sc, hy - 2 * sc, 3.4 * sc, '#fff9d8'); circ(hx + 5 * sc, hy - 2 * sc, 3.4 * sc, '#fff9d8');
+          circ(hx - 4 * sc, hy - 2 * sc, 1.6 * sc, '#1b1b1b'); circ(hx + 5 * sc, hy - 2 * sc, 1.6 * sc, '#1b1b1b');
+          circ(hx + .5 * sc, hy + 3 * sc, 1.5 * sc, '#e58a9a');
+        } else {
+          line(hx - 7 * sc, hy - 1 * sc, hx - 2 * sc, hy - 1 * sc, '#3b2a1f', 1.6 * sc); line(hx + 2 * sc, hy - 1 * sc, hx + 7 * sc, hy - 1 * sc, '#3b2a1f', 1.6 * sc);
+          ctx.font = 'bold ' + Math.round(14 * Math.max(sc, .8)) + 'px "Segoe UI", Arial'; ctx.fillStyle = 'rgba(255,255,255,' + (.4 + .4 * Math.sin(t * 2)) + ')';
+          ctx.fillText('z', cx0 + 34 * sc, cy0 - 32 * sc - Math.abs(Math.sin(t)) * 6 * sc);
+        }
         // камин
         var sg = ctx.createLinearGradient(g.fx, 0, g.fx + g.fw, 0); sg.addColorStop(0, '#7d7d86'); sg.addColorStop(.5, '#9a9aa3'); sg.addColorStop(1, '#7d7d86');
         ctx.fillStyle = sg; ctx.fillRect(g.fx, g.fy, g.fw, g.fh);
@@ -1121,7 +1196,7 @@
           }
         }
         if (x > g.fx + g.fw * .2 && x < g.fx + g.fw * .8 && y > g.fy + g.fh * .3 && y < g.fl) { flare = 1.2; say(g.cx, g.fy - 30 * sc, 'Пых! Потрескивает'); return; }
-        if (Math.hypot(x - W * .4 - 10 * sc, y - H * .9 + 15 * sc) < 45 * sc * T) { cat.z = 2; say(W * .4 + 20 * sc, H * .9 - 50 * sc, 'Мур-мур'); return; }
+        if (Math.hypot(x - W * .4 - 10 * sc, y - H * .9 + 15 * sc) < 45 * sc * T) { cat.z = 4; say(W * .4 + 20 * sc, H * .9 - 70 * sc, pick(['Мяу! Я не спал...', 'Мур-мур', 'Дай поспать!'], '')); return; }
         if (Math.hypot(x - W * .84, y - (H * .88 - 14 * sc)) < 60 * sc * T) say(W * .84, H * .88 - 70 * sc, 'Не подглядывай!');
       }
     };
@@ -1145,9 +1220,10 @@
     $('actBtn').textContent = actTitle[plan[cur]];
     $('actBtn').disabled = false;
     $('actBtn').onclick = acts[plan[cur]];
-    $('pendingText').textContent = 'Нажми кнопку «' + actTitle[plan[cur]] + '» вверху страницы, и здесь появятся пожелание и задание на сегодня. А пока поиграй со сценой.';
+    $('pendingText').textContent = 'Нажми кнопку «' + actTitle[plan[cur]] + '» выше, и здесь появятся пожелание и задание на сегодня. А в самом низу страницы можно поиграть со сценой дня.';
     // ритуал начинается заново
     busy = false; bubbles = [];
+    $('giftov').classList.remove('show', 'shake', 'open');
     $('pending').hidden = false; $('reveal').hidden = true; $('shop').hidden = true;
     $('doneBtn').hidden = false; $('doneNote').hidden = true;
     $('tLabel').textContent = (shift > 0 ? '+' + shift : shift) + ' дн. (' + dd + '), ' + titles[cur];
