@@ -1082,7 +1082,7 @@
 
   // ================= СЦЕНА 6: КАМИН И ПОДАРКИ =================
   var cozy = (function () {
-    var swing = [0, 0, 0], flare = 0, candy = [], cat = { z: 0 }, k;
+    var swing = [0, 0, 0], flare = 0, candy = [], cat = { z: 0 }, bowl = { f: 0 }, k;
     function geo() { var fl = H * .8, fw = W * .34, fh = H * .46; return { fl: fl, fw: fw, fh: fh, cx: W * .5, fx: W * .5 - fw / 2, fy: fl - fh }; }
     function stX(g, i) { return g.cx + (i - 1) * g.fw * .34; }
     function flame(bx, by, w, h, sw, col) {
@@ -1095,7 +1095,7 @@
       ctx.fillStyle = rib; ctx.fillRect(x + w / 2 - 3 * sc, y, 6 * sc, h); ctx.fillRect(x, y + h / 2 - 3 * sc, w, 6 * sc);
     }
     return {
-      hint: 'Сегодня уютный вечер. Кликни по носкам, чтобы получить конфетку, по огню, чтобы он вспыхнул, и разбуди кота.',
+      hint: 'Сегодня уютный вечер. Кликни по носкам, чтобы получить конфетку, по огню, чтобы он вспыхнул. Разбуди кота: он спросит про еду, и его можно покормить из миски.',
       draw: function (dt) {
         var g = geo();
         var wg = ctx.createLinearGradient(0, 0, 0, g.fl); wg.addColorStop(0, '#3a1f22'); wg.addColorStop(1, '#5e3028');
@@ -1149,6 +1149,16 @@
           ctx.font = 'bold ' + Math.round(14 * Math.max(sc, .8)) + 'px "Segoe UI", Arial'; ctx.fillStyle = 'rgba(255,255,255,' + (.4 + .4 * Math.sin(t * 2)) + ')';
           ctx.fillText('z', cx0 + 34 * sc, cy0 - 32 * sc - Math.abs(Math.sin(t)) * 6 * sc);
         }
+        // миска: пустая, пока кота не покормили
+        var bwx = W * .4 + 62 * sc, bwy = H * .9;
+        ell(bwx, bwy - 5 * sc, 17 * sc, 7 * sc, '#2f6fd6');
+        ell(bwx, bwy - 9 * sc, 13 * sc, 4.5 * sc, '#1d4a9a');
+        if (bowl.f > 0) {
+          for (k = 0; k < 8; k++) circ(bwx - 9 * sc + k * 2.6 * sc + Math.sin(k * 3) * 2 * sc, bwy - 11 * sc - Math.abs(Math.sin(k * 2)) * 3 * sc, 2.2 * sc, '#a0602a');
+        } else {
+          ctx.font = 'bold ' + Math.round(11 * Math.max(sc, .8)) + 'px "Segoe UI", Arial'; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.textAlign = 'center';
+          ctx.fillText('пусто', bwx, bwy + 12 * Math.max(sc, .8)); ctx.textAlign = 'start';
+        }
         // камин
         var sg = ctx.createLinearGradient(g.fx, 0, g.fx + g.fw, 0); sg.addColorStop(0, '#7d7d86'); sg.addColorStop(.5, '#9a9aa3'); sg.addColorStop(1, '#7d7d86');
         ctx.fillStyle = sg; ctx.fillRect(g.fx, g.fy, g.fw, g.fh);
@@ -1184,7 +1194,7 @@
           ell(c.x, c.y, 8 * sc, 5 * sc, c.c); tri(c.x - 8 * sc, c.y, c.x - 14 * sc, c.y - 5 * sc, c.x - 14 * sc, c.y + 5 * sc, c.c); tri(c.x + 8 * sc, c.y, c.x + 14 * sc, c.y - 5 * sc, c.x + 14 * sc, c.y + 5 * sc, c.c);
           ctx.globalAlpha = 1;
         });
-        cat.z = Math.max(0, cat.z - dt);
+        cat.z = Math.max(0, cat.z - dt); bowl.f = Math.max(0, bowl.f - dt);
       },
       click: function (x, y) {
         var g = geo();
@@ -1196,7 +1206,13 @@
           }
         }
         if (x > g.fx + g.fw * .2 && x < g.fx + g.fw * .8 && y > g.fy + g.fh * .3 && y < g.fl) { flare = 1.2; say(g.cx, g.fy - 30 * sc, 'Пых! Потрескивает'); return; }
-        if (Math.hypot(x - W * .4 - 10 * sc, y - H * .9 + 15 * sc) < 45 * sc * T) { cat.z = 4; say(W * .4 + 20 * sc, H * .9 - 70 * sc, pick(['Мяу! Я не спал...', 'Мур-мур', 'Дай поспать!'], '')); return; }
+        if (Math.hypot(x - (W * .4 + 62 * sc), y - (H * .9 - 6 * sc)) < 30 * sc * T) { // миска: кормим кота
+          bowl.f = 7; cat.z = 4; say(W * .4 + 40 * sc, H * .9 - 70 * sc, pick(['Ням-ням! Спасибо!', 'Вот это другое дело!', 'Мур-мур-мур'], '')); return;
+        }
+        if (Math.hypot(x - W * .4 - 10 * sc, y - H * .9 + 15 * sc) < 45 * sc * T) {
+          cat.z = 4;
+          say(W * .4 + 20 * sc, H * .9 - 70 * sc, bowl.f > 0 ? 'Не мешай, я ем!' : pick(['Мяу! А где моя еда?', 'Ты принёс мне поесть?', 'А покормить кота кто будет?'], '')); return;
+        }
         if (Math.hypot(x - W * .84, y - (H * .88 - 14 * sc)) < 60 * sc * T) say(W * .84, H * .88 - 70 * sc, 'Не подглядывай!');
       }
     };
