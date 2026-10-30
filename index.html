@@ -28,21 +28,29 @@
   #fire { z-index: 2; }
   main { position: relative; z-index: 3; max-width: 1040px; margin: 0 auto; padding: 20px 16px 60px; }
 
+  body { font-size: 17px; line-height: 1.4; }
   header { text-align: center; }
-  h1 { margin: 6px 0 0; font-size: clamp(28px, 6vw, 48px); color: var(--gold); text-shadow: 0 0 20px rgba(255, 211, 107, .5); }
-  .sub { opacity: .8; margin: 6px 0 14px; }
+  h1 { margin: 6px 0 0; font-size: clamp(26px, 7vw, 44px); color: var(--gold); text-shadow: 0 0 20px rgba(255, 211, 107, .5); }
+  .scene { text-align: center; font-size: 20px; font-weight: 600; color: var(--gold); margin: 0 0 4px; }
+  .play { margin-top: 22px; }
+  .gate { margin-top: 16px; text-align: center; }
+  .gate .small { font-size: 17px; margin: 0 0 10px; opacity: .9; }
+  button.main { width: 100%; max-width: 520px; font-size: 21px; font-weight: 600; padding: 18px 24px; animation: pulse 2.2s infinite; }
+  button.main:disabled { animation: none; background: #2f7a4f; box-shadow: none; cursor: default; }
+  #next { margin-top: 18px; }
+  #pending p { margin: 0; min-height: 0; font-size: 18px; }
 
   .tabs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .tabs button { background: rgba(255,255,255,.12); box-shadow: none; padding: 9px 20px; }
   .tabs button.on { background: var(--red); box-shadow: 0 4px 14px rgba(232, 71, 63, .4); }
   .stagewrap { border-radius: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 10px 40px rgba(0,0,0,.4); background: #0b1a3a; }
   #stage { display: block; width: 100%; touch-action: pan-y; cursor: pointer; }
-  #hint { text-align: center; opacity: .75; font-size: 14px; margin: 10px 0 0; min-height: 20px; }
+  #hint { text-align: center; font-size: 16px; margin: 0 0 12px; opacity: .92; }
 
-  .timer { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 22px 0 8px; }
-  .unit { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; padding: 12px 16px; min-width: 84px; text-align: center; backdrop-filter: blur(4px); }
-  .unit b { display: block; font-size: clamp(28px, 7vw, 44px); color: var(--gold); font-variant-numeric: tabular-nums; }
-  .unit span { font-size: 13px; opacity: .8; }
+  .timer { display: flex; justify-content: center; gap: 8px; margin: 14px 0 8px; }
+  .unit { flex: 1; max-width: 120px; background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; padding: 12px 4px; text-align: center; backdrop-filter: blur(4px); }
+  .unit b { display: block; font-size: clamp(30px, 9vw, 48px); color: var(--gold); font-variant-numeric: tabular-nums; }
+  .unit span { font-size: 14px; opacity: .85; }
   #hello { text-align: center; font-size: 22px; margin: 6px 0 0; min-height: 28px; }
 
   section { margin-top: 36px; }
@@ -64,11 +72,15 @@
   .good .price { color: var(--gold); margin-bottom: 12px; }
 
   [hidden] { display: none !important; }
+  .testbar { position: fixed; z-index: 20; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,.8); color: #fff; padding: 8px 12px; border-radius: 999px; font-size: 13px; max-width: 96vw; }
+  .testbar button { padding: 8px 14px; font-size: 14px; box-shadow: none; background: #3a5ea8; }
+  .testbar span { text-align: center; }
   @media (max-width: 560px) {
     main { padding: 12px 10px 40px; }
     .actions button, .center button { width: 100%; font-size: 20px; padding: 16px 20px; }
     .box { padding: 18px 14px; }
-    .unit { min-width: 70px; padding: 10px 12px; }
+    .unit { padding: 10px 2px; }
   }
   .actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
   .actions button { padding: 14px 24px; font-size: 18px; }
@@ -92,28 +104,30 @@
 
 <main>
   <header>
-    <h1>С наступающим Новым годом!</h1>
-    <p class="sub" id="sceneName"></p>
+    <h1>До Нового года осталось:</h1>
+    <div class="timer" id="timer">
+      <div class="unit"><b id="d">0</b><span>дней</span></div>
+      <div class="unit"><b id="h">00</b><span>часов</span></div>
+      <div class="unit"><b id="m">00</b><span>минут</span></div>
+      <div class="unit"><b id="s">00</b><span>секунд</span></div>
+    </div>
+    <div id="hello"></div>
   </header>
 
-  <div class="stagewrap"><canvas id="stage"></canvas></div>
-  <p id="hint"></p>
-
-  <div class="timer" id="timer">
-    <div class="unit"><b id="d">0</b><span>дней</span></div>
-    <div class="unit"><b id="h">00</b><span>часов</span></div>
-    <div class="unit"><b id="m">00</b><span>минут</span></div>
-    <div class="unit"><b id="s">00</b><span>секунд</span></div>
-  </div>
-  <div id="hello"></div>
-
   <section class="gate" id="gate">
-    <div class="box">
-      <p class="big">Новогодний подарок дня</p>
-      <p class="small">Нажми на кнопку, и откроются пожелание и задание на сегодня, а потом и сюрприз от нас</p>
-      <div class="actions">
-        <button id="actBtn"></button>
-      </div>
+    <p class="small">Подарок дня: нажми на кнопку</p>
+    <button id="actBtn" class="main"></button>
+  </section>
+
+  <section class="play">
+    <p class="scene" id="sceneName"></p>
+    <p id="hint"></p>
+    <div class="stagewrap"><canvas id="stage"></canvas></div>
+  </section>
+
+  <section id="next">
+    <div class="box" id="pending">
+      <p id="pendingText"></p>
     </div>
   </section>
 
@@ -137,6 +151,12 @@
   </section>
 
   <div class="toast" id="toast" hidden></div>
+  <div class="testbar" id="testbar" hidden>
+    <button id="tPrev">&#9664;</button>
+    <span id="tLabel"></span>
+    <button id="tNext">&#9654;</button>
+    <button id="tNow">Сегодня</button>
+  </div>
 
   <footer>Хорошего праздника!</footer>
 </main>
@@ -293,9 +313,10 @@
   var busy = false;
   function ritual(delay) {
     busy = true;
+    $('actBtn').disabled = true; $('actBtn').textContent = 'Открываем подарок...';
     setTimeout(function () {
-      $('gate').hidden = true; $('reveal').hidden = false;
-      $('reveal').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('pending').hidden = true; $('reveal').hidden = false;
+      $('actBtn').textContent = 'Подарок открыт, крути вниз';
     }, delay);
   }
   function showDone() { $('doneBtn').hidden = true; $('doneNote').hidden = false; $('shop').hidden = false; }
@@ -362,7 +383,7 @@
     ctx.closePath();
   }
   function fir(x, base, h, col, snowTop) {
-    var w = h * .5;
+    var w = Math.min(h * .5, W * .15);
     ctx.fillStyle = col;
     ctx.fillRect(x - h * .03, base - h * .06, h * .06, h * .08);
     tri(x, base - h * .5, x - w * .55, base - h * .02, x + w * .55, base - h * .02, col);
@@ -428,7 +449,7 @@
       });
 
     function house(h, off, dt) {
-      var bw = h.w * W, bh = h.h * H * 1.1, x = h.x * W + off, y = H * .88 - bh, rh = bw * .42;
+      var bw = h.w * W * (W < 600 ? 1.2 : 1), bh = h.h * H * 1.1 * (W < 600 ? 1.15 : 1), x = h.x * W + off, y = H * .88 - bh, rh = bw * .42;
       ctx.fillStyle = h.c; ctx.fillRect(x - bw / 2, y, bw, bh);
       ctx.fillStyle = '#4a2a22'; ctx.fillRect(x + bw * .18, y - rh * .9, bw * .12, rh * .9);
       tri(x - bw * .62, y, x + bw * .62, y, x, y - rh, '#2a2540');
@@ -443,7 +464,7 @@
       });
       // дым
       h.st += dt;
-      if (h.st > .35) { h.st = 0; h.smoke.push({ l: 0 }); }
+      if (h.st > .5) { h.st = 0; h.smoke.push({ l: 0 }); }
       h.smoke = h.smoke.filter(function (p) { return p.l < 3; });
       h.smoke.forEach(function (p) {
         p.l += dt;
@@ -532,8 +553,12 @@
         ridge(.72, .09, .009, 4, '#1c2a5e', off * 22);
         groundSnow(.86, '#e4edff', '#b4c6ea');
         hits = [];
+        // ёлки между домиками стоят позади, домики поверх них; спереди только две по краям (иначе закрывают окна)
+        [[.19, .9, .3], [.36, .9, .27], [.55, .9, .29], [.73, .9, .31]].forEach(function (a) {
+          fir(a[0] * W + off * 26, H * a[1], H * a[2], '#12363a', true);
+        });
         houses.forEach(function (h) { house(h, off * 30, dt); });
-        [[.03, .98, .5], [.2, .96, .34], [.37, .97, .3], [.56, .97, .32], [.74, .96, .36], [.93, .98, .52]].forEach(function (a) {
+        [[.04, .98, .42], [.96, .98, .46]].forEach(function (a) {
           fir(a[0] * W + off * 45, H * a[1], H * a[2], '#0d2b2e', true);
         });
 
@@ -1108,11 +1133,32 @@
   var titles = ['Зимняя деревня', 'Волшебный лес', 'Мастерская снеговика', 'Полярная ночь', 'Каток с каруселью', 'Камин и подарки'];
   var actTitle = { cracker: 'Хлопнуть хлопушку', sparkler: 'Зажечь бенгальский огонь', salute: 'Запустить салют' };
   var DAY0 = 20756; // 30.10.2026: деревня и салют, завтра лес и бенгальские огни, потом по кругу
-  cur = (((dayN - DAY0) % scenes.length) + scenes.length) % scenes.length;
-  $('hint').textContent = scenes[cur].hint;
-  $('sceneName').textContent = 'Сегодня: ' + titles[cur];
-  $('actBtn').textContent = actTitle[plan[cur]];
-  $('actBtn').onclick = acts[plan[cur]];
+  var shift = 0; // сдвиг в днях для тестовой панели (адрес с ?test), обычному посетителю всегда 0
+  function setDay() {
+    var n = dayN + shift;
+    cur = (((n - DAY0) % scenes.length) + scenes.length) % scenes.length;
+    $('wish').textContent = wishes[((n * 7) % wishes.length + wishes.length) % wishes.length] + '.';
+    $('task').textContent = tasks[((n * 7) % tasks.length + tasks.length) % tasks.length] + '.';
+    $('hint').textContent = scenes[cur].hint;
+    var d = new Date(n * 86400000), dd = ('0' + d.getUTCDate()).slice(-2) + '.' + ('0' + (d.getUTCMonth() + 1)).slice(-2);
+    $('sceneName').textContent = (shift ? 'Тест, ' + dd : 'Сегодня') + ': ' + titles[cur];
+    $('actBtn').textContent = actTitle[plan[cur]];
+    $('actBtn').disabled = false;
+    $('actBtn').onclick = acts[plan[cur]];
+    $('pendingText').textContent = 'Нажми кнопку «' + actTitle[plan[cur]] + '» вверху страницы, и здесь появятся пожелание и задание на сегодня. А пока поиграй со сценой.';
+    // ритуал начинается заново
+    busy = false; bubbles = [];
+    $('pending').hidden = false; $('reveal').hidden = true; $('shop').hidden = true;
+    $('doneBtn').hidden = false; $('doneNote').hidden = true;
+    $('tLabel').textContent = (shift > 0 ? '+' + shift : shift) + ' дн. (' + dd + '), ' + titles[cur];
+  }
+  setDay();
+  if (/[?&]test\b/.test(location.search)) {
+    $('testbar').hidden = false;
+    $('tPrev').onclick = function () { shift--; setDay(); };
+    $('tNext').onclick = function () { shift++; setDay(); };
+    $('tNow').onclick = function () { shift = 0; setDay(); };
+  }
 
   function localPos(e) {
     var r = stage.getBoundingClientRect();
