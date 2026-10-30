@@ -26,18 +26,20 @@
   canvas.layer { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   #snow { z-index: 1; }
   #fire { z-index: 2; }
-  main { position: relative; z-index: 3; max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+  main { position: relative; z-index: 3; max-width: 1040px; margin: 0 auto; padding: 20px 16px 60px; }
 
-  header { text-align: center; padding-top: 8px; }
-  h1 { margin: 8px 0 0; font-size: clamp(28px, 6vw, 48px); color: var(--gold); text-shadow: 0 0 20px rgba(255, 211, 107, .5); }
-  .sub { opacity: .8; margin: 6px 0 0; }
-  .tree { width: min(300px, 70vw); height: auto; display: block; margin: 8px auto 0; }
-  .twinkle { animation: tw 1.6s infinite ease-in-out; }
-  .twinkle:nth-child(2n) { animation-delay: .5s; }
-  .twinkle:nth-child(3n) { animation-delay: 1s; }
-  @keyframes tw { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+  header { text-align: center; }
+  h1 { margin: 6px 0 0; font-size: clamp(28px, 6vw, 48px); color: var(--gold); text-shadow: 0 0 20px rgba(255, 211, 107, .5); }
+  .sub { opacity: .8; margin: 6px 0 14px; }
 
-  .timer { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 20px 0 8px; }
+  .tabs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs button { background: rgba(255,255,255,.12); box-shadow: none; padding: 9px 20px; }
+  .tabs button.on { background: var(--red); box-shadow: 0 4px 14px rgba(232, 71, 63, .4); }
+  .stagewrap { border-radius: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 10px 40px rgba(0,0,0,.4); background: #0b1a3a; }
+  #stage { display: block; width: 100%; touch-action: pan-y; cursor: pointer; }
+  #hint { text-align: center; opacity: .75; font-size: 14px; margin: 10px 0 0; min-height: 20px; }
+
+  .timer { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 22px 0 8px; }
   .unit { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; padding: 12px 16px; min-width: 84px; text-align: center; backdrop-filter: blur(4px); }
   .unit b { display: block; font-size: clamp(28px, 7vw, 44px); color: var(--gold); font-variant-numeric: tabular-nums; }
   .unit span { font-size: 13px; opacity: .8; }
@@ -49,8 +51,8 @@
   .box p { font-size: clamp(18px, 3.6vw, 24px); margin: 0 0 16px; min-height: 2.6em; }
   .lead { color: var(--gold); }
   button {
-    font: inherit; cursor: pointer; border: 0; border-radius: 999px; padding: 10px 22px;
-    background: var(--red); color: #fff; box-shadow: 0 4px 14px rgba(232, 71, 63, .4);
+    font: inherit; color: #fff; cursor: pointer; border: 0; border-radius: 999px; padding: 10px 22px;
+    background: var(--red); box-shadow: 0 4px 14px rgba(232, 71, 63, .4);
   }
   button:hover { filter: brightness(1.1); }
 
@@ -61,7 +63,20 @@
   .good h3 { margin: 12px 8px 4px; font-size: 17px; }
   .good .price { color: var(--gold); margin-bottom: 12px; }
 
-  .salut { text-align: center; }
+  [hidden] { display: none !important; }
+  .actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .actions button { padding: 14px 24px; font-size: 18px; }
+  .gate .box { text-align: center; border-color: rgba(255,211,107,.6); animation: pulse 2.2s infinite; }
+  .gate .big { font-size: clamp(20px, 4.4vw, 28px); color: var(--gold); margin: 0 0 6px; min-height: 0; }
+  .gate .small { font-size: 16px; opacity: .8; min-height: 0; margin-bottom: 18px; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 rgba(255,211,107,0); } 50% { box-shadow: 0 0 28px rgba(255,211,107,.35); } }
+  .fadein { animation: fadein .9s ease both; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .stack .box + .box { margin-top: 14px; }
+  .center { text-align: center; margin-top: 18px; }
+  .center button { padding: 14px 28px; font-size: 18px; }
+  #doneNote { color: var(--gold); font-size: 18px; }
+  .toast { position: fixed; z-index: 10; left: 50%; top: 90px; transform: translateX(-50%); background: rgba(0,0,0,.65); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 20px; pointer-events: none; text-align: center; max-width: 90vw; }
   footer { text-align: center; opacity: .6; margin-top: 40px; font-size: 14px; }
 </style>
 </head>
@@ -72,27 +87,16 @@
 <main>
   <header>
     <h1>С наступающим Новым годом!</h1>
-    <p class="sub">Волшебство уже совсем рядом</p>
-    <svg class="tree" viewBox="0 0 300 340" aria-hidden="true">
-      <polygon points="150,10 160,40 190,40 166,58 176,88 150,70 124,88 134,58 110,40 140,40" fill="#ffd36b"/>
-      <polygon points="150,50 215,140 85,140" fill="#1f8a4c"/>
-      <polygon points="150,100 235,205 65,205" fill="#26a05a"/>
-      <polygon points="150,160 258,275 42,275" fill="#2fb868"/>
-      <rect x="132" y="275" width="36" height="40" fill="#7a4a24"/>
-      <g>
-        <circle class="twinkle" cx="150" cy="95" r="6" fill="#e8473f"/>
-        <circle class="twinkle" cx="120" cy="125" r="6" fill="#ffd36b"/>
-        <circle class="twinkle" cx="180" cy="130" r="6" fill="#5bb8ff"/>
-        <circle class="twinkle" cx="135" cy="175" r="7" fill="#ffd36b"/>
-        <circle class="twinkle" cx="170" cy="190" r="7" fill="#e8473f"/>
-        <circle class="twinkle" cx="105" cy="215" r="7" fill="#5bb8ff"/>
-        <circle class="twinkle" cx="200" cy="232" r="7" fill="#ffd36b"/>
-        <circle class="twinkle" cx="150" cy="245" r="7" fill="#e8473f"/>
-        <circle class="twinkle" cx="80" cy="262" r="6" fill="#ffd36b"/>
-        <circle class="twinkle" cx="225" cy="262" r="6" fill="#5bb8ff"/>
-      </g>
-    </svg>
+    <p class="sub">Выбери сцену и загляни внутрь</p>
+    <div class="tabs" id="tabs">
+      <button data-i="0">Деревня</button>
+      <button data-i="1">Лес</button>
+      <button data-i="2">Мастерская</button>
+    </div>
   </header>
+
+  <div class="stagewrap"><canvas id="stage"></canvas></div>
+  <p id="hint"></p>
 
   <div class="timer" id="timer">
     <div class="unit"><b id="d">0</b><span>дней</span></div>
@@ -102,41 +106,52 @@
   </div>
   <div id="hello"></div>
 
-  <section>
-    <h2>Пусть в новом году будет...</h2>
+  <section class="gate" id="gate">
+    <div class="box">
+      <p class="big">Новогодний подарок дня</p>
+      <p class="small">Выбери, как открыть подарок: пожелание, задание и сюрприз от нас ждут внутри</p>
+      <div class="actions">
+        <button id="crackerBtn">Хлопнуть хлопушку</button>
+        <button id="sparklerBtn">Зажечь бенгальский огонь</button>
+        <button id="saluteBtn">Запустить салют</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="reveal" class="stack fadein" hidden>
+    <h2>Пожелание и задание на сегодня</h2>
     <div class="box">
       <p><span class="lead">Пусть в новом году будет </span><span id="wish"></span></p>
-      <button id="wishBtn">Ещё пожелание</button>
     </div>
-  </section>
-
-  <section>
-    <h2>Задание на сегодня</h2>
     <div class="box">
       <p id="task"></p>
-      <button id="taskBtn">Другое задание</button>
+    </div>
+    <div class="center">
+      <button id="doneBtn">Сделаю, спасибо!</button>
+      <div id="doneNote" hidden>Спасибо! Завтра тебя ждёт новое пожелание, задание и картинка.</div>
     </div>
   </section>
 
-  <section>
+  <section id="shop" class="fadein" hidden>
     <h2>Подарки от нас</h2>
     <div class="goods" id="goods"></div>
   </section>
 
-  <section class="salut">
-    <h2>Салют</h2>
-    <div class="box">
-      <p>Кликай в любом месте страницы или жми кнопку.</p>
-      <button id="fireBtn">Запустить салют</button>
-    </div>
-  </section>
+  <div class="toast" id="toast" hidden></div>
 
   <footer>Хорошего праздника!</footer>
 </main>
 
 <script>
 (function () {
-  // ----- данные -----
+  var $ = function (id) { return document.getElementById(id); };
+  function pick(list, prev) {
+    var x;
+    do { x = list[Math.floor(Math.random() * list.length)]; } while (x === prev && list.length > 1);
+    return x;
+  }
+
+  // ================= тексты =================
   var wishes = [
     'много тёплых вечеров с близкими', 'здоровье крепче, чем ёлочные игрушки', 'удача, которая не отпускает до декабря',
     'побольше поводов для смеха', 'красивые путешествия и лёгкие дороги', 'идеи, которые получаются с первого раза',
@@ -154,96 +169,705 @@
     { name: 'Товар 1', price: 'цена' }, { name: 'Товар 2', price: 'цена' },
     { name: 'Товар 3', price: 'цена' }, { name: 'Товар 4', price: 'цена' }
   ];
-
-  var $ = function (id) { return document.getElementById(id); };
-  function pick(list, prev) {
-    var x;
-    do { x = list[Math.floor(Math.random() * list.length)]; } while (x === prev && list.length > 1);
-    return x;
-  }
-
-  // ----- пожелание и задание -----
-  var wish = '', task = '';
-  function newWish() { wish = pick(wishes, wish); $('wish').textContent = wish + '.'; }
-  function newTask() { task = pick(tasks, task); $('task').textContent = task + '.'; }
-  $('wishBtn').onclick = newWish;
-  $('taskBtn').onclick = newTask;
-  newWish(); newTask();
-
-  // ----- товары-заглушки -----
+  // больше вариантов, чтобы месяц не повторялись (длины 30 и 24 не делятся на 7, шаг по дням 7 обходит все по очереди)
+  wishes = wishes.concat([
+    'чашка чего-нибудь горячего в нужный момент', 'встречи, после которых хочется улыбаться', 'тихое утро и мягкий плед',
+    'смелость начать то, что давно откладывал', 'вкусные сюрпризы без повода', 'аккуратные дела, которые делаются сами',
+    'интересные книги и хорошие фильмы', 'лёгкие дороги без пробок', 'тёплые слова от тех, кто важен',
+    'много света, даже когда за окном серо', 'смех до слёз хотя бы раз в неделю', 'спокойствие, которое не сбить пустяками',
+    'маленькие победы каждый день', 'подарки, которые угадали с первого раза', 'уверенность, что всё получится'
+  ]);
+  tasks = tasks.concat([
+    'Обними кого-нибудь из близких', 'Скажи спасибо человеку, которого обычно не замечаешь', 'Сделай один шаг к давней мечте',
+    'Выйди на пять минут на свежий воздух', 'Приготовь что-нибудь вкусное и поделись', 'Отложи телефон на час',
+    'Улыбнись первому встречному', 'Убери одну вещь, которая давно мешает', 'Запиши три хороших вещи за сегодня',
+    'Позвони тому, по кому скучаешь', 'Включи любимую музыку и потанцуй', 'Нарисуй открытку и отправь кому-нибудь'
+  ]);
+  var nd = new Date();
+  var dayN = Math.floor(Date.UTC(nd.getFullYear(), nd.getMonth(), nd.getDate()) / 86400000);
+  var dayKey = String(dayN);
+  $('wish').textContent = wishes[(dayN * 7) % wishes.length] + '.';
+  $('task').textContent = tasks[(dayN * 7) % tasks.length] + '.';
   $('goods').innerHTML = goods.map(function (g) {
     return '<div class="good"><div class="pic">фото товара</div><h3>' + g.name + '</h3><div class="price">' + g.price + '</div></div>';
   }).join('');
 
-  // ----- таймер -----
+  // ================= таймер =================
   var celebrated = false;
   function tick() {
     var now = new Date();
     var target = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
-    var left = target - now;
-    var sec = Math.floor(left / 1000);
+    var sec = Math.floor((target - now) / 1000);
     $('d').textContent = Math.floor(sec / 86400);
     $('h').textContent = ('0' + Math.floor(sec % 86400 / 3600)).slice(-2);
     $('m').textContent = ('0' + Math.floor(sec % 3600 / 60)).slice(-2);
     $('s').textContent = ('0' + sec % 60).slice(-2);
-    // 1 января — новый отсчет уже на следующий год, поздравляем
     var isJan1 = now.getMonth() === 0 && now.getDate() === 1;
     $('hello').textContent = isJan1 ? 'С Новым годом!' : '';
-    if (isJan1 && !celebrated) { celebrated = true; for (var i = 0; i < 8; i++) setTimeout(launch, i * 400); }
+    if (isJan1 && !celebrated) { celebrated = true; for (var i = 0; i < 8; i++) setTimeout(function () { launch(); }, i * 400); }
   }
   tick(); setInterval(tick, 1000);
 
-  // ----- холсты -----
-  var snow = $('snow'), sc = snow.getContext('2d');
+  // ================= фон страницы: снег и салют =================
+  var snow = $('snow'), sc0 = snow.getContext('2d');
   var fire = $('fire'), fc = fire.getContext('2d');
-  var W, H;
-  function resize() {
-    W = snow.width = fire.width = window.innerWidth;
-    H = snow.height = fire.height = window.innerHeight;
+  var PW, PH;
+  function resizePage() {
+    PW = snow.width = fire.width = window.innerWidth;
+    PH = snow.height = fire.height = window.innerHeight;
   }
-  window.addEventListener('resize', resize); resize();
-
-  // снег
-  var flakes = [];
-  for (var i = 0; i < 90; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 3, v: .4 + Math.random() * 1.2, p: Math.random() * 6 });
-  // салют
-  var sparks = [];
+  window.addEventListener('resize', resizePage); resizePage();
+  var pflakes = [], sparks = [], i;
+  for (i = 0; i < 90; i++) pflakes.push({ x: Math.random() * PW, y: Math.random() * PH, r: 1 + Math.random() * 3, v: .4 + Math.random() * 1.2, p: Math.random() * 6 });
   function launch(x, y) {
-    x = x === undefined ? 60 + Math.random() * (W - 120) : x;
-    y = y === undefined ? 60 + Math.random() * H * .4 : y;
+    x = x === undefined ? 60 + Math.random() * (PW - 120) : x;
+    y = y === undefined ? 60 + Math.random() * PH * .4 : y;
     var hue = Math.floor(Math.random() * 360);
     for (var k = 0; k < 70; k++) {
       var a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4.5;
       sparks.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, hue: hue + Math.random() * 40 });
     }
   }
-  window.launch = launch;
+  var confetti = [], sparkler = { until: 0, x: 0, y: 0, last: 0 };
+  var CONF = ['#ff4d4d', '#ffd34d', '#4dc3ff', '#7dff7d', '#ff7de0', '#ffffff'];
+  function confettiBurst() {
+    for (var q = 0; q < 160; q++) {
+      var left = q % 2 === 0, sp = 6 + Math.random() * 12;
+      confetti.push({ x: left ? PW * .05 : PW * .95, y: PH * .85, vx: (left ? 1 : -1) * (2 + Math.random() * 9), vy: -sp, r: Math.random() * 6, vr: (Math.random() - .5) * .4,
+        c: CONF[Math.floor(Math.random() * CONF.length)], l: 1 });
+    }
+  }
+  function emitSparks(x, y, n) {
+    for (var q = 0; q < n; q++) {
+      var a = Math.random() * 6.2832, s = 1 + Math.random() * 3.5;
+      sparks.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1, life: 1, hue: 35 + Math.random() * 25, dec: .035 });
+    }
+  }
+  function startSparkler(x, y) {
+    sparkler.until = performance.now() + 4500; sparkler.x = x; sparkler.y = y; sparkler.last = performance.now();
+    document.body.style.touchAction = 'none';
+    setTimeout(function () { document.body.style.touchAction = ''; }, 4600);
+  }
+  function sparklerMove(x, y) {
+    var now = performance.now();
+    if (now > sparkler.until) return;
+    sparkler.x = x; sparkler.y = y; sparkler.last = now;
+    emitSparks(x, y, 6);
+  }
+  document.addEventListener('pointermove', function (e) { sparklerMove(e.clientX, e.clientY); });
+  document.addEventListener('touchmove', function (e) { if (e.touches[0]) sparklerMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
 
-  function frame() {
-    sc.clearRect(0, 0, W, H);
-    sc.fillStyle = 'rgba(255,255,255,.85)';
-    flakes.forEach(function (f) {
+  function pageFrame() {
+    sc0.clearRect(0, 0, PW, PH);
+    sc0.fillStyle = 'rgba(255,255,255,.85)';
+    pflakes.forEach(function (f) {
       f.y += f.v; f.p += .02; f.x += Math.sin(f.p) * .5;
-      if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; }
-      sc.beginPath(); sc.arc(f.x, f.y, f.r, 0, 6.3); sc.fill();
+      if (f.y > PH + 5) { f.y = -5; f.x = Math.random() * PW; }
+      sc0.beginPath(); sc0.arc(f.x, f.y, f.r, 0, 6.3); sc0.fill();
     });
-    fc.clearRect(0, 0, W, H);
+    fc.clearRect(0, 0, PW, PH);
     sparks = sparks.filter(function (p) { return p.life > 0; });
     sparks.forEach(function (p) {
-      p.x += p.vx; p.y += p.vy; p.vy += .05; p.vx *= .985; p.life -= .014;
+      p.x += p.vx; p.y += p.vy; p.vy += .05; p.vx *= .985; p.life -= p.dec || .014;
       fc.fillStyle = 'hsla(' + p.hue + ',100%,65%,' + Math.max(p.life, 0) + ')';
       fc.beginPath(); fc.arc(p.x, p.y, 2.2, 0, 6.3); fc.fill();
     });
-    requestAnimationFrame(frame);
+    var now = performance.now();
+    if (now < sparkler.until && now - sparkler.last > 400) { // не двигают пальцем — огонёк сам бегает по экрану
+      emitSparks(PW / 2 + Math.cos(now / 400) * PW * .25, PH / 2 + Math.sin(now / 300) * PH * .2, 6);
+    }
+    confetti = confetti.filter(function (c) { return c.l > 0 && c.y < PH + 20; });
+    confetti.forEach(function (c) {
+      c.x += c.vx; c.y += c.vy; c.vy += .25; c.vx *= .99; c.r += c.vr; c.l -= .004;
+      fc.save(); fc.translate(c.x, c.y); fc.rotate(c.r); fc.fillStyle = c.c; fc.fillRect(-4, -2, 8, 4); fc.restore();
+    });
+    requestAnimationFrame(pageFrame);
   }
-  frame();
+  pageFrame();
 
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('button')) return;
-    launch(e.clientX, e.clientY);
-  });
-  $('fireBtn').addEventListener('click', function () { for (var i = 0; i < 5; i++) setTimeout(launch, i * 250); });
-  setInterval(function () { if (!document.hidden) launch(); }, 6000);
+  // ----- ритуал дня: действие -> пожелание и задание -> "Сделаю" -> товары -----
+  var toastTimer = 0;
+  function toast(txt) {
+    $('toast').textContent = txt; $('toast').hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { $('toast').hidden = true; }, 1800);
+  }
+  var busy = false;
+  function ritual(delay) {
+    busy = true;
+    setTimeout(function () {
+      $('gate').hidden = true; $('reveal').hidden = false;
+      $('reveal').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, delay);
+  }
+  function showDone() { $('doneBtn').hidden = true; $('doneNote').hidden = false; $('shop').hidden = false; }
+  var doneToday = false;
+  try { doneToday = localStorage.getItem('nyDone') === dayKey; } catch (e) { doneToday = false; }
+  if (doneToday) { $('gate').hidden = true; $('reveal').hidden = false; showDone(); }
+  $('crackerBtn').onclick = function () { if (busy) return; toast('Хлоп!'); confettiBurst(); ritual(1200); };
+  $('sparklerBtn').onclick = function (e) {
+    if (busy) return;
+    toast('Води пальцем или мышкой по экрану');
+    startSparkler(e.clientX || PW / 2, e.clientY || PH / 2);
+    ritual(4700);
+  };
+  $('saluteBtn').onclick = function () {
+    if (busy) return;
+    toast('Салют!');
+    for (var k = 0; k < 7; k++) setTimeout(function () { launch(); }, k * 300);
+    ritual(2400);
+  };
+  $('doneBtn').onclick = function () {
+    try { localStorage.setItem('nyDone', dayKey); } catch (e) { /* без запоминания */ }
+    showDone(); confettiBurst();
+    for (var k = 0; k < 4; k++) setTimeout(function () { launch(); }, k * 350);
+    setTimeout(function () { $('shop').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 600);
+  };
+
+  // ================= сцена =================
+  var stage = $('stage'), ctx = stage.getContext('2d');
+  var W = 0, H = 0, sc = 1, t = 0;
+  var px = 0, py = 0, tx = 0, mx = 0;
+
+  function sizeStage() {
+    var w = stage.parentNode.clientWidth;
+    var h = Math.max(380, Math.min(620, Math.round(window.innerHeight * .66)));
+    if (w < 520) h = 440;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    stage.width = Math.round(w * dpr); stage.height = Math.round(h * dpr);
+    stage.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = w; H = h; sc = Math.min(W / 820, H / 520);
+  }
+  window.addEventListener('resize', sizeStage); sizeStage();
+
+  // --- помощники рисования ---
+  function ell(x, y, rx, ry, col, rot) { ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, 6.2832); ctx.fill(); }
+  function circ(x, y, r, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill(); }
+  function tri(x1, y1, x2, y2, x3, y3, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.closePath(); ctx.fill(); }
+  function line(x1, y1, x2, y2, col, w) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  function glow(x, y, r, rgb, a) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(' + rgb + ',' + a + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill();
+  }
+  function rrect(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function starPath(cx, cy, R, r) {
+    ctx.beginPath();
+    for (var k = 0; k < 10; k++) {
+      var a = -Math.PI / 2 + k * Math.PI / 5, rad = k % 2 ? r : R;
+      ctx.lineTo(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad);
+    }
+    ctx.closePath();
+  }
+  function fir(x, base, h, col, snowTop) {
+    var w = h * .5;
+    ctx.fillStyle = col;
+    ctx.fillRect(x - h * .03, base - h * .06, h * .06, h * .08);
+    tri(x, base - h * .5, x - w * .55, base - h * .02, x + w * .55, base - h * .02, col);
+    tri(x, base - h * .78, x - w * .42, base - h * .27, x + w * .42, base - h * .27, col);
+    tri(x, base - h, x - w * .3, base - h * .54, x + w * .3, base - h * .54, col);
+    if (snowTop) tri(x, base - h, x - w * .11, base - h * .84, x + w * .11, base - h * .84, '#e8f1ff');
+  }
+  function ridge(base, amp, freq, ph, col, off) {
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-30, H);
+    for (var x = -30; x <= W + 30; x += 12) {
+      var u = x * freq + ph;
+      ctx.lineTo(x + off, H * base - H * amp * (Math.sin(u) * .5 + Math.sin(u * 2.3 + 1) * .3 + Math.sin(u * 5.1) * .1 + .9));
+    }
+    ctx.lineTo(W + 30, H); ctx.closePath(); ctx.fill();
+  }
+  function groundSnow(top, c1, c2) {
+    var g = ctx.createLinearGradient(0, H * top, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(0, H * top);
+    for (var x = 0; x <= W + 20; x += 20) ctx.lineTo(x, H * top + Math.sin(x * .02) * 4);
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+  }
+
+  // --- снег внутри сцены ---
+  var flk = [];
+  for (i = 0; i < 110; i++) flk.push({ x: Math.random(), y: Math.random(), r: .8 + Math.random() * 2.2, v: .03 + Math.random() * .07, p: Math.random() * 6 });
+  function drawSnow(dt) {
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    flk.forEach(function (f) {
+      f.y += f.v * dt; f.p += dt;
+      if (f.y > 1.02) { f.y = -.02; f.x = Math.random(); }
+      ctx.beginPath(); ctx.arc((f.x + Math.sin(f.p) * .01) * W, f.y * H, f.r * Math.max(.7, sc), 0, 6.2832); ctx.fill();
+    });
+  }
+
+  // --- подсказки-облачка ---
+  var bubbles = [];
+  function say(x, y, txt) { bubbles.push({ x: x, y: y, t: txt, l: 2.2 }); }
+  function drawBubbles(dt) {
+    ctx.font = 'bold ' + Math.round(15 * Math.max(.85, sc)) + 'px "Segoe UI", Arial';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    bubbles = bubbles.filter(function (b) { return b.l > 0; });
+    bubbles.forEach(function (b) {
+      b.l -= dt;
+      var w = ctx.measureText(b.t).width + 24, h = 28;
+      var x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, b.x)), y = b.y - (2.2 - b.l) * 12;
+      ctx.globalAlpha = Math.max(0, Math.min(1, b.l / .5));
+      ctx.fillStyle = 'rgba(255,255,255,.96)'; rrect(x - w / 2, y - h / 2, w, h, 14); ctx.fill();
+      ctx.fillStyle = '#223'; ctx.fillText(b.t, x, y);
+      ctx.globalAlpha = 1;
+    });
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+
+  // ================= СЦЕНА 1: ДЕРЕВНЯ =================
+  var village = (function () {
+    var stars = [], houses = [], shoot = [], trail = [], hits = [];
+    var santa = { on: false, t: 0, next: 5, x: -999, y: -999 };
+    var winTimer = 0, shootTimer = 4, k;
+    for (k = 0; k < 100; k++) stars.push({ x: Math.random(), y: Math.random() * .55, r: .4 + Math.random() * 1.3, p: Math.random() * 6 });
+    [[.10, .13, .10, '#8a3f33'], [.27, .10, .08, '#41679a'], [.45, .14, .11, '#9a6a30'], [.64, .11, .085, '#6a4a8a'], [.82, .13, .10, '#2f7a66']]
+      .forEach(function (a) {
+        houses.push({ x: a[0], w: a[1], h: a[2], c: a[3], win: [Math.random() < .6, Math.random() < .6, Math.random() < .5], smoke: [], st: Math.random() });
+      });
+
+    function house(h, off, dt) {
+      var bw = h.w * W, bh = h.h * H * 1.1, x = h.x * W + off, y = H * .88 - bh, rh = bw * .42;
+      ctx.fillStyle = h.c; ctx.fillRect(x - bw / 2, y, bw, bh);
+      ctx.fillStyle = '#4a2a22'; ctx.fillRect(x + bw * .18, y - rh * .9, bw * .12, rh * .9);
+      tri(x - bw * .62, y, x + bw * .62, y, x, y - rh, '#2a2540');
+      tri(x - bw * .3, y - rh * .52, x + bw * .3, y - rh * .52, x, y - rh, '#f4f8ff');
+      var spots = [[x - bw * .25, y + bh * .2, bw * .18, bh * .28], [x + bw * .25, y + bh * .2, bw * .18, bh * .28], [x, y + bh * .52, bw * .16, bh * .48]];
+      spots.forEach(function (s, idx) {
+        var lit = h.win[idx];
+        if (lit) { glow(s[0], s[1] + s[3] / 2, bw * .35, '255,210,110', .35); }
+        ctx.fillStyle = lit ? '#ffd780' : '#1f2340';
+        ctx.fillRect(s[0] - s[2] / 2, s[1], s[2], s[3]);
+        hits.push({ x: s[0] - s[2] / 2 - 6, y: s[1] - 6, w: s[2] + 12, h: s[3] + 12, ho: h, idx: idx });
+      });
+      // дым
+      h.st += dt;
+      if (h.st > .35) { h.st = 0; h.smoke.push({ l: 0 }); }
+      h.smoke = h.smoke.filter(function (p) { return p.l < 3; });
+      h.smoke.forEach(function (p) {
+        p.l += dt;
+        var sx = x + bw * .24 + p.l * 16 + Math.sin(p.l * 2) * 4, sy = y - rh * .9 - p.l * 45;
+        ctx.globalAlpha = .35 * (1 - p.l / 3); circ(sx, sy, 4 + p.l * 5, '#dfe6f5'); ctx.globalAlpha = 1;
+      });
+    }
+
+    function reindeer(rx, ry, lead, ph) {
+      ell(rx, ry, 16, 8, '#8a5a33');
+      ell(rx - 18, ry - 2, 4, 3, '#f3f3f3');
+      line(rx + 12, ry - 4, rx + 17, ry - 11, '#8a5a33', 5);
+      ell(rx + 19, ry - 12, 6.5, 5, '#8a5a33');
+      for (var q = 0; q < 2; q++) {
+        var lx = rx - 9 + q * 16;
+        line(lx, ry + 5, lx + Math.sin(t * 10 + ph + q * 3) * 6, ry + 17, '#5a3a20', 3);
+      }
+      line(rx + 18, ry - 16, rx + 13, ry - 27, '#d9c7a0', 2); line(rx + 15, ry - 22, rx + 20, ry - 26, '#d9c7a0', 2);
+      if (lead) { glow(rx + 25, ry - 11, 14, '255,60,60', .6); circ(rx + 25, ry - 11, 2.8, '#ff3b3b'); }
+    }
+
+    function santaDraw(dt) {
+      if (!santa.on) { santa.next -= dt; if (santa.next <= 0) { santa.on = true; santa.t = 0; } return; }
+      santa.t += dt;
+      var p = santa.t / 11;
+      if (p >= 1) { santa.on = false; santa.next = 40; return; }
+      var s = sc * 1.25, x = -170 * s + (W + 340 * s) * p, y = H * .2 + Math.sin(p * 7) * H * .03;
+      santa.x = x; santa.y = y;
+      for (var q = 0; q < 2; q++) trail.push({ x: x - 30 * s + Math.random() * 20, y: y + Math.random() * 16 * s, l: 0 });
+      ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+      line(30, -8, 80, 2, '#ffd36b', 1.2); line(80, 2, 125, 2, '#ffd36b', 1.2);
+      reindeer(125, 2, true, 1); reindeer(80, 2, false, 0);
+      ctx.fillStyle = '#d6322b';
+      ctx.beginPath(); ctx.moveTo(-30, -2); ctx.lineTo(26, -2); ctx.lineTo(36, -22); ctx.lineTo(24, -14); ctx.lineTo(-28, -14); ctx.closePath(); ctx.fill();
+      line(-34, 8, 30, 8, '#ffd36b', 2.5); line(-30, 8, -30, -2, '#ffd36b', 2); line(20, 8, 20, -2, '#ffd36b', 2);
+      ell(-20, -18, 9, 8, '#7a4a28');
+      ell(-6, -16, 8, 9, '#d6322b');
+      circ(-4, -28, 5.5, '#f6c9a8');
+      ell(-3, -22.5, 4.5, 3.5, '#ffffff');
+      tri(-9, -30, 1, -30, -3, -41, '#d6322b'); circ(-3, -42, 2.2, '#ffffff');
+      ctx.restore();
+    }
+
+    return {
+      hint: 'Двигай мышкой или пальцем, деревня оживает. Кликни по окну, чтобы зажечь или погасить свет, по небу, чтобы загадать желание. Следи за небом: скоро прилетит гость.',
+      draw: function (dt) {
+        var off = mx;
+        var g = ctx.createLinearGradient(0, 0, 0, H * .8);
+        g.addColorStop(0, '#071433'); g.addColorStop(.6, '#1d2f6b'); g.addColorStop(1, '#5b4a8f');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        stars.forEach(function (s) {
+          ctx.globalAlpha = .4 + .6 * Math.abs(Math.sin(t * .8 + s.p));
+          circ(s.x * W - off * 4, s.y * H, s.r, '#fff');
+        });
+        ctx.globalAlpha = 1;
+        // северное сияние
+        ctx.globalCompositeOperation = 'lighter';
+        for (k = 0; k < 3; k++) {
+          var ag = ctx.createLinearGradient(0, H * .08, 0, H * .5);
+          ag.addColorStop(0, ['rgba(60,255,160,.30)', 'rgba(80,200,255,.25)', 'rgba(170,110,255,.22)'][k]); ag.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = ag;
+          for (var x = 0; x < W; x += 8) {
+            var yt = H * (.14 + .06 * k) + Math.sin(x * .008 + t * .35 + k * 2) * H * .05 + Math.sin(x * .02 - t * .5) * H * .015;
+            ctx.fillRect(x - off * 10, yt, 9, H * .5 - yt);
+          }
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        // луна
+        var mr = 24 * Math.max(sc, .8);
+        glow(W * .84 - off * 6, H * .17, mr * 3.4, '255,240,200', .35);
+        circ(W * .84 - off * 6, H * .17, mr, '#fff4d6');
+        circ(W * .84 - off * 6 - mr * .3, H * .17 - mr * .2, mr * .2, '#e6dcc0');
+        circ(W * .84 - off * 6 + mr * .35, H * .17 + mr * .3, mr * .15, '#e6dcc0');
+
+        santaDraw(dt);
+        // след саней
+        ctx.globalCompositeOperation = 'lighter';
+        trail = trail.filter(function (q) { return q.l < 1.2; });
+        trail.forEach(function (q) {
+          q.l += dt; q.y += dt * 14;
+          ctx.globalAlpha = Math.max(0, 1 - q.l / 1.2); circ(q.x, q.y, 2.2 * Math.max(sc, .8), '#ffe08a');
+        });
+        ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+
+        ridge(.62, .12, .006, 1, '#2a3a78', off * 10);
+        ridge(.72, .09, .009, 4, '#1c2a5e', off * 22);
+        groundSnow(.86, '#e4edff', '#b4c6ea');
+        hits = [];
+        houses.forEach(function (h) { house(h, off * 30, dt); });
+        [[.03, .98, .5], [.2, .96, .34], [.37, .97, .3], [.56, .97, .32], [.74, .96, .36], [.93, .98, .52]].forEach(function (a) {
+          fir(a[0] * W + off * 45, H * a[1], H * a[2], '#0d2b2e', true);
+        });
+
+        // падающие звезды
+        winTimer += dt; shootTimer -= dt;
+        if (winTimer > 1.4) {
+          winTimer = 0;
+          var hh = houses[Math.floor(Math.random() * houses.length)], wi = Math.floor(Math.random() * 3);
+          hh.win[wi] = !hh.win[wi];
+        }
+        if (shootTimer <= 0) { shootTimer = 6 + Math.random() * 6; shoot.push({ x: Math.random() * W * .7, y: Math.random() * H * .25, vx: 320, vy: 140, l: 0 }); }
+        shoot = shoot.filter(function (s) { return s.l < 1.2; });
+        ctx.globalCompositeOperation = 'lighter';
+        shoot.forEach(function (s) {
+          s.l += dt; s.x += s.vx * dt; s.y += s.vy * dt;
+          ctx.globalAlpha = Math.max(0, 1 - s.l / 1.2);
+          line(s.x, s.y, s.x - s.vx * .14, s.y - s.vy * .14, '#fff', 2); circ(s.x, s.y, 2.5, '#fff');
+        });
+        ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+        drawSnow(dt);
+      },
+      click: function (x, y) {
+        if (santa.on && Math.hypot(x - santa.x, y - santa.y) < 120 * sc) {
+          say(santa.x, santa.y - 50 * sc, 'Хо-хо-хо!');
+          for (k = 0; k < 24; k++) trail.push({ x: santa.x + (Math.random() - .5) * 120 * sc, y: santa.y + (Math.random() - .5) * 60 * sc, l: 0 });
+          return;
+        }
+        for (k = 0; k < hits.length; k++) {
+          var a = hits[k];
+          if (x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h) { a.ho.win[a.idx] = !a.ho.win[a.idx]; return; }
+        }
+        shoot.push({ x: x, y: y, vx: 320, vy: 140, l: 0 });
+        if (Math.random() < .5) say(x, y - 20, 'Загадай желание!');
+      }
+    };
+  })();
+
+  // ================= СЦЕНА 2: ЛЕС =================
+  var forest = (function () {
+    var stars = [], flies = [], owl = { w: 0 }, fox = { j: 0 }, deer = { h: 0 }, mode = 0, k;
+    var modes = [
+      { n: 'разноцветная гирлянда', c: ['#ff4d4d', '#ffd34d', '#4dc3ff', '#7dff7d'] },
+      { n: 'тёплый свет', c: ['#ffd36b', '#ffb347', '#fff0b3'] },
+      { n: 'ледяной свет', c: ['#bfe7ff', '#7fc7ff', '#ffffff'] },
+      { n: 'красно-зелёная', c: ['#ff4d4d', '#5dff8a'] }
+    ];
+    for (k = 0; k < 70; k++) stars.push({ x: Math.random(), y: Math.random() * .5, r: .4 + Math.random() * 1.1, p: Math.random() * 6 });
+    for (k = 0; k < 45; k++) flies.push({ x: Math.random(), y: .3 + Math.random() * .6, a: Math.random() * 6.28, s: .5 + Math.random() });
+    function treeGeo() {
+      var top = H * .12, base = H * .88, th = base - top;
+      return { cx: W * .5, top: top, base: base, th: th, tw: th * .62 };
+    }
+    function firRow(baseY, h, count, col, par, ph) {
+      for (var q = 0; q < count; q++) {
+        var x = (q + .5) / count * W + Math.sin(q * 7.3 + ph) * W * .02 + mx * par;
+        fir(x, baseY, h * (.8 + .25 * Math.abs(Math.sin(q * 3.1 + ph))), col, false);
+      }
+    }
+    function owlDraw(x, y) {
+      var s = sc, wide = owl.w > 0, blink = (t % 4) < .15 && !wide;
+      ell(x - 14 * s, y - 20 * s, 6 * s, 15 * s, '#6e5230', -.2); ell(x + 14 * s, y - 20 * s, 6 * s, 15 * s, '#6e5230', .2);
+      ell(x, y - 22 * s, 15 * s, 22 * s, '#8a6a3d');
+      ell(x, y - 15 * s, 9 * s, 14 * s, '#c9a56a');
+      tri(x - 14 * s, y - 38 * s, x - 6 * s, y - 42 * s, x - 11 * s, y - 50 * s, '#8a6a3d');
+      tri(x + 14 * s, y - 38 * s, x + 6 * s, y - 42 * s, x + 11 * s, y - 50 * s, '#8a6a3d');
+      [-7, 7].forEach(function (d) {
+        circ(x + d * s, y - 31 * s, 8 * s, '#fff6d8');
+        if (blink) line(x + (d - 5) * s, y - 31 * s, x + (d + 5) * s, y - 31 * s, '#3b2a1f', 2 * s);
+        else circ(x + d * s, y - 31 * s, (wide ? 4.8 : 3.2) * s, '#1b1b1b');
+      });
+      tri(x - 3 * s, y - 27 * s, x + 3 * s, y - 27 * s, x, y - 21 * s, '#f0a030');
+    }
+    function deerDraw(x, y) {
+      var s = sc, lift = deer.h > 0 ? Math.sin((1 - deer.h / 1.2) * Math.PI) * 14 * s : 0;
+      [[-22, 0], [-12, 3], [14, 0], [24, 3]].forEach(function (l) { line(x + l[0] * s, y - 46 * s, x + l[0] * s + l[1] * s, y, '#6b4a2b', 5 * s); });
+      ell(x, y - 54 * s, 34 * s, 18 * s, '#8a5f38');
+      ell(x - 4 * s, y - 48 * s, 24 * s, 9 * s, '#b58a5c');
+      tri(x - 34 * s, y - 58 * s, x - 42 * s, y - 62 * s, x - 36 * s, y - 50 * s, '#f3f3f3');
+      line(x + 26 * s, y - 62 * s, x + 40 * s, y - 88 * s - lift, '#8a5f38', 12 * s);
+      ell(x + 46 * s, y - 92 * s - lift, 14 * s, 8 * s, '#8a5f38', -.3);
+      circ(x + 58 * s, y - 89 * s - lift, 3.4 * s, '#ff3b3b');
+      glow(x + 58 * s, y - 89 * s - lift, 14 * s, '255,60,60', .45 + .25 * Math.sin(t * 4));
+      var ax = x + 42 * s, ay = y - 98 * s - lift;
+      [[-1, 0], [1, 0]].forEach(function (d) {
+        line(ax + d[0] * 2 * s, ay, ax + d[0] * 10 * s - 6 * s, ay - 22 * s, '#d9c7a0', 3 * s);
+        line(ax + d[0] * 6 * s - 3 * s, ay - 10 * s, ax + d[0] * 15 * s - 4 * s, ay - 16 * s, '#d9c7a0', 2.4 * s);
+      });
+    }
+    function foxDraw(x, y) {
+      var s = sc, jy = fox.j > 0 ? Math.abs(Math.sin((1 - fox.j / .9) * Math.PI)) * 55 * s : 0;
+      y -= jy;
+      ell(x + 36 * s, y - 22 * s, 24 * s, 10 * s, '#e0702a', -.35);
+      circ(x + 56 * s, y - 32 * s, 5.5 * s, '#ffffff');
+      [[-14, 0], [-6, 3], [12, 0], [20, 3]].forEach(function (l) { line(x + l[0] * s, y - 14 * s, x + l[0] * s + l[1] * s, y + jy * 0, '#3a2418', 4 * s); });
+      ell(x, y - 24 * s, 30 * s, 14 * s, '#e0702a');
+      ell(x - 14 * s, y - 20 * s, 12 * s, 7 * s, '#ffffff');
+      tri(x - 26 * s, y - 30 * s, x - 54 * s, y - 24 * s, x - 28 * s, y - 46 * s, '#e0702a');
+      tri(x - 26 * s, y - 40 * s, x - 22 * s, y - 52 * s, x - 33 * s, y - 44 * s, '#e0702a');
+      tri(x - 36 * s, y - 40 * s, x - 36 * s, y - 52 * s, x - 44 * s, y - 40 * s, '#e0702a');
+      circ(x - 54 * s, y - 24 * s, 2.4 * s, '#222'); circ(x - 37 * s, y - 33 * s, 1.8 * s, '#222');
+    }
+    function tree(dt) {
+      var g = treeGeo(), hw = [.38, .58, .78, 1], cols = ['#0f5a38', '#136b43', '#187d4f', '#1d9059'];
+      for (var q = 3; q >= 0; q--) {
+        var ay = g.top + q * g.th * .2, by = Math.min(g.base, ay + g.th * .38), w = g.tw / 2 * hw[q];
+        tri(g.cx, ay, g.cx - w, by, g.cx + w, by, cols[q]);
+        tri(g.cx, ay, g.cx - w * .22, ay + (by - ay) * .22, g.cx + w * .22, ay + (by - ay) * .22, '#e8f1ff');
+      }
+      ctx.fillStyle = '#4a2f1b'; ctx.fillRect(g.cx - g.tw * .06, g.base - 6, g.tw * .12, 16);
+      var pal = modes[mode].c;
+      for (var j = 0; j < 44; j++) {
+        var f = (j + 1) / 45, y = g.top + f * g.th * .95, wd = g.tw / 2 * f * .9, x = g.cx + Math.sin(j * 2.1) * wd;
+        var a = .55 + .45 * Math.sin(t * 3 + j * 1.3), col = pal[j % pal.length];
+        ctx.globalAlpha = a * .35; circ(x, y, 9 * Math.max(sc, .8), col);
+        ctx.globalAlpha = a; circ(x, y, 3.4 * Math.max(sc, .8), col);
+      }
+      ctx.globalAlpha = 1;
+      glow(g.cx, g.top, 40 * sc, '255,220,120', .5 + .2 * Math.sin(t * 2));
+      starPath(g.cx, g.top + 2, 16 * Math.max(sc, .8), 7 * Math.max(sc, .8)); ctx.fillStyle = '#ffd95e'; ctx.fill();
+    }
+    return {
+      hint: 'Кликни по большой ёлке, чтобы сменить цвет гирлянды. А ещё здесь живут сова, олень и лиса: познакомься с каждым.',
+      draw: function (dt) {
+        var g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, '#05142a'); g.addColorStop(.6, '#0e3446'); g.addColorStop(1, '#1d5560');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        stars.forEach(function (s) { ctx.globalAlpha = .3 + .7 * Math.abs(Math.sin(t * .7 + s.p)); circ(s.x * W, s.y * H, s.r, '#fff'); });
+        ctx.globalAlpha = 1;
+        glow(W * .5, H * .5, H * .75, '40,120,140', .25);
+        firRow(H * .8, H * .38, 10, '#0a2236', 8, 1);
+        firRow(H * .86, H * .5, 7, '#0b3042', 18, 3);
+        groundSnow(.87, '#d3e3f1', '#8fa9c4');
+        // сова на ветке
+        ctx.fillStyle = '#3b2a1f'; ctx.fillRect(W * .07, H * .3, 18 * sc, H * .62);
+        line(W * .07 + 9 * sc, H * .52, W * .26, H * .52, '#3b2a1f', 9 * sc);
+        line(W * .1, H * .52 - 5 * sc, W * .25, H * .52 - 5 * sc, '#eef4ff', 3 * sc);
+        owlDraw(W * .19, H * .52 - 4 * sc);
+        deerDraw(W * .30, H * .91);
+        foxDraw(W * .76, H * .91);
+        tree(dt);
+        // светлячки
+        ctx.globalCompositeOperation = 'lighter';
+        flies.forEach(function (f, q) {
+          f.a += (Math.random() - .5) * dt * 4;
+          f.x += Math.cos(f.a) * f.s * dt * .04; f.y += Math.sin(f.a) * f.s * dt * .04;
+          if (f.x < 0) f.x = 1; if (f.x > 1) f.x = 0; if (f.y < .25) f.y = .25; if (f.y > .92) f.y = .92;
+          var b = .4 + .6 * Math.abs(Math.sin(t * 2 + q));
+          glow(f.x * W, f.y * H, 9 * Math.max(sc, .8), '200,255,120', .55 * b);
+          circ(f.x * W, f.y * H, 1.6, '#f4ffc0');
+        });
+        ctx.globalCompositeOperation = 'source-over';
+        owl.w = Math.max(0, owl.w - dt); fox.j = Math.max(0, fox.j - dt); deer.h = Math.max(0, deer.h - dt);
+        drawSnow(dt);
+      },
+      click: function (x, y) {
+        var gg = treeGeo();
+        if (Math.hypot(x - W * .19, y - (H * .52 - 25 * sc)) < 50 * sc) { owl.w = 1.5; say(W * .19, H * .52 - 70 * sc, 'Ух-ху!'); return; }
+        if (Math.hypot(x - (W * .30 + 20 * sc), y - (H * .91 - 60 * sc)) < 70 * sc) { deer.h = 1.2; say(W * .30 + 40 * sc, H * .91 - 130 * sc, 'Ту-ру-ру!'); return; }
+        if (Math.hypot(x - W * .76, y - (H * .91 - 30 * sc)) < 55 * sc) { fox.j = .9; say(W * .76, H * .91 - 100 * sc, 'Тяв!'); return; }
+        if (y > gg.top - 15 && y < gg.base + 10 && Math.abs(x - gg.cx) < gg.tw / 2 * ((y - gg.top) / gg.th) + 14) {
+          mode = (mode + 1) % modes.length; say(gg.cx, gg.top + gg.th * .3, modes[mode].n);
+        }
+      }
+    };
+  })();
+
+  // ================= СЦЕНА 3: МАСТЕРСКАЯ =================
+  var work = (function () {
+    var lvl = 0, pop = 0, hop = 0, rockets = [], bursts = [], on = [[], []], allOn = false, k, s;
+    var colors = ['#ff4d4d', '#ffd34d', '#4dc3ff', '#7dff7d'];
+    var N = 14;
+    for (s = 0; s < 2; s++) for (k = 0; k < N; k++) on[s].push(Math.random() < .3);
+    var sayLvl = ['Уже снежок!', 'Растём!', 'Красавец!', 'Шляпа и шарф!', 'Готово!'];
+    function bulbPos(si, i) {
+      var u = (i + .5) / N, y0 = si ? H * .2 : H * .06, sag = si ? H * .07 : H * .06;
+      return { x: u * W, y: y0 + sag * Math.sin(Math.PI * u) + (si ? 0 : 0) };
+    }
+    function rocket(x, ty, d) { rockets.push({ x: x, y: H * .8, ty: ty, d: d || 0 }); }
+    function ball(x, y, r) {
+      var g = ctx.createRadialGradient(x - r * .3, y - r * .3, r * .1, x, y, r);
+      g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#bcd0f0');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill();
+    }
+    function geo() {
+      var r1 = 48 * sc, r2 = 36 * sc, r3 = 26 * sc, base = H * .93, x = W * .5;
+      var y1 = base - r1, y2 = y1 - r1 * .8 - r2 * .6, y3 = y2 - r2 * .8 - r3 * .5;
+      return { x: x, base: base, r1: r1, r2: r2, r3: r3, y1: y1, y2: y2, y3: y3 };
+    }
+    function snowman() {
+      var g = geo(), x = g.x, sq = 1 + .08 * Math.sin(Math.min(pop, .4) / .4 * Math.PI);
+      ctx.save(); ctx.translate(x, g.base); ctx.scale(sq, sq); ctx.translate(-x, -g.base);
+      if (lvl === 0) { ball(x, g.base - 16 * sc, 16 * sc); ctx.restore(); return; }
+      ball(x, g.y1, g.r1);
+      if (lvl >= 2) ball(x, g.y2, g.r2);
+      if (lvl >= 3) ball(x, g.y3, g.r3);
+      if (lvl >= 5) {
+        line(x - g.r2 * .8, g.y2, x - g.r2 * 1.9, g.y2 - g.r2 * .8, '#5b3a1e', 3 * sc);
+        line(x + g.r2 * .8, g.y2, x + g.r2 * 1.9, g.y2 - g.r2 * .8, '#5b3a1e', 3 * sc);
+        circ(x - g.r3 * .35, g.y3 - g.r3 * .2, 2.6 * sc, '#222'); circ(x + g.r3 * .35, g.y3 - g.r3 * .2, 2.6 * sc, '#222');
+        tri(x, g.y3, x, g.y3 + 5 * sc, x + g.r3 * 1.1, g.y3 + 3 * sc, '#f08a24');
+        for (var q = 0; q < 5; q++) circ(x - g.r3 * .5 + q * g.r3 * .25, g.y3 + g.r3 * .45 + Math.sin(q / 4 * Math.PI) * 2 * sc, 1.4 * sc, '#222');
+        for (q = 0; q < 3; q++) circ(x, g.y2 - g.r2 * .25 + q * g.r2 * .35, 2.8 * sc, '#222');
+      }
+      if (lvl >= 4) {
+        ctx.fillStyle = '#d6322b'; rrect(x - g.r3 * 1.05, g.y3 + g.r3 * .75, g.r3 * 2.1, 8 * sc, 4 * sc); ctx.fill();
+        ctx.fillRect(x + g.r3 * .35, g.y3 + g.r3 * .75, 7 * sc, 22 * sc);
+        var hy = hop > 0 ? -Math.abs(Math.sin((1 - hop / .6) * Math.PI)) * 26 * sc : 0, top = g.y3 - g.r3 + hy;
+        ctx.fillStyle = '#1b1b24'; ctx.fillRect(x - g.r3 * .7, top - g.r3 * .9, g.r3 * 1.4, g.r3 * 1.0);
+        ctx.fillStyle = '#d6322b'; ctx.fillRect(x - g.r3 * .7, top - g.r3 * .2, g.r3 * 1.4, g.r3 * .2);
+        ctx.fillStyle = '#1b1b24'; ctx.fillRect(x - g.r3 * 1.05, top + g.r3 * .05, g.r3 * 2.1, g.r3 * .2);
+      }
+      ctx.restore();
+    }
+    return {
+      hint: 'Кликай по снеговику: он будет расти. Кликай по лампочкам: они зажигаются. Кликни по небу, и взлетит салют.',
+      draw: function (dt) {
+        var sg = ctx.createLinearGradient(0, 0, 0, H * .8);
+        sg.addColorStop(0, '#0f1c4d'); sg.addColorStop(.5, '#4a3d8a'); sg.addColorStop(.85, '#d98fa0'); sg.addColorStop(1, '#f2b8a0');
+        ctx.fillStyle = sg; ctx.fillRect(0, 0, W, H);
+        // город
+        var bx = 0, bi = 0;
+        while (bx < W) {
+          var bw = (46 + (bi * 37 % 40)) * Math.max(sc, .7), bh = H * (.1 + ((bi * 53) % 20) / 100);
+          ctx.fillStyle = '#1d1a3d'; ctx.fillRect(bx, H * .8 - bh, bw, bh);
+          for (var r = 0; r < Math.floor(bh / 16); r++) for (var c = 0; c < Math.floor(bw / 14) - 1; c++) {
+            if (((bi * 7 + r * 13 + c * 17) % 5) < 2) { ctx.fillStyle = '#ffd780'; ctx.fillRect(bx + 8 + c * 14, H * .8 - bh + 8 + r * 16, 6, 8); }
+          }
+          bx += bw + 3; bi++;
+        }
+        groundSnow(.8, '#f4f8ff', '#c5d5f2');
+        // гирлянды
+        for (s = 0; s < 2; s++) {
+          ctx.strokeStyle = '#14301f'; ctx.lineWidth = 2; ctx.beginPath();
+          for (var u = 0; u <= 40; u++) {
+            var y0 = s ? H * .2 : H * .06, sag = s ? H * .07 : H * .06;
+            var xx = u / 40 * W, yy = y0 + sag * Math.sin(Math.PI * u / 40);
+            if (u) ctx.lineTo(xx, yy); else ctx.moveTo(xx, yy);
+          }
+          ctx.stroke();
+          for (k = 0; k < N; k++) {
+            var bp = bulbPos(s, k), col = colors[(k + s) % 4];
+            if (on[s][k]) {
+              var br = allOn ? .75 + .25 * Math.sin(t * 5 - k * .8) : 1;
+              ctx.globalAlpha = .4 * br; circ(bp.x, bp.y + 6, 15 * Math.max(sc, .8), col);
+              ctx.globalAlpha = 1; circ(bp.x, bp.y + 6, 5.5 * Math.max(sc, .8), col);
+            } else circ(bp.x, bp.y + 6, 4.5 * Math.max(sc, .8), '#3a3a58');
+          }
+        }
+        snowman();
+        // ракеты
+        ctx.globalCompositeOperation = 'lighter';
+        rockets = rockets.filter(function (r) {
+          if (r.d > 0) { r.d -= dt; return true; }
+          r.y -= H * .9 * dt;
+          ctx.globalAlpha = 1; circ(r.x, r.y, 2.5, '#fff'); line(r.x, r.y, r.x, r.y + 14, 'rgba(255,220,150,.6)', 2);
+          if (r.y <= r.ty) {
+            var hue = Math.floor(Math.random() * 360);
+            for (var q = 0; q < 70; q++) {
+              var a = Math.random() * 6.2832, sp = 40 + Math.random() * 190;
+              bursts.push({ x: r.x, y: r.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, l: 1, h: hue + Math.random() * 40 });
+            }
+            return false;
+          }
+          return true;
+        });
+        bursts = bursts.filter(function (p) { return p.l > 0; });
+        bursts.forEach(function (p) {
+          p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 90 * dt; p.vx *= .99; p.l -= dt * .8;
+          ctx.fillStyle = 'hsla(' + p.h + ',100%,65%,' + Math.max(p.l, 0) + ')';
+          ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, 6.2832); ctx.fill();
+        });
+        ctx.globalCompositeOperation = 'source-over';
+        pop = Math.max(0, pop - dt); hop = Math.max(0, hop - dt);
+        drawSnow(dt);
+      },
+      click: function (x, y) {
+        // лампочки
+        for (s = 0; s < 2; s++) for (k = 0; k < N; k++) {
+          var bp = bulbPos(s, k);
+          if (Math.hypot(x - bp.x, y - (bp.y + 6)) < 18 * Math.max(sc, .8) + 6) {
+            on[s][k] = !on[s][k];
+            var all = on[0].every(Boolean) && on[1].every(Boolean);
+            if (all && !allOn) { for (var q = 0; q < 6; q++) rocket(W * (.1 + q * .16), H * (.2 + Math.random() * .2), q * .25); say(W * .5, H * .35, 'Гирлянда горит!'); }
+            allOn = all;
+            return;
+          }
+        }
+        // снеговик
+        var g = geo();
+        if (Math.hypot(x - g.x, y - (g.base - 80 * sc)) < 100 * sc) {
+          if (lvl < 5) {
+            lvl++; pop = .4; say(g.x, g.base - 190 * sc, sayLvl[lvl - 1]);
+            if (lvl === 5) { rocket(g.x - 120 * sc, H * .35); rocket(g.x + 120 * sc, H * .3, .3); }
+          } else {
+            hop = .6; say(g.x, g.base - 210 * sc, pick(['Привет!', 'С Новым годом!', 'Холодно, но весело!'], ''));
+            rocket(g.x + (Math.random() - .5) * 200, H * (.25 + Math.random() * .15));
+          }
+          return;
+        }
+        if (y < H * .78) rocket(x, y);
+      }
+    };
+  })();
+
+  // ================= переключатель сцен и цикл =================
+  var scenes = [village, forest, work], cur = 0;
+  var tabBtns = Array.prototype.slice.call(document.querySelectorAll('#tabs button'));
+  function setScene(n) {
+    cur = n;
+    tabBtns.forEach(function (b, q) { b.className = q === n ? 'on' : ''; });
+    $('hint').textContent = scenes[n].hint;
+    bubbles = [];
+  }
+  tabBtns.forEach(function (b) { b.onclick = function () { setScene(Number(b.getAttribute('data-i'))); }; });
+  setScene(dayN % scenes.length); // сцена дня: каждый день своя, вкладки можно переключать вручную
+
+  function localPos(e) {
+    var r = stage.getBoundingClientRect();
+    px = e.clientX - r.left; py = e.clientY - r.top;
+  }
+  stage.addEventListener('pointermove', function (e) { localPos(e); tx = (px / W - .5) * 2; });
+  stage.addEventListener('pointerleave', function () { tx = 0; });
+  stage.addEventListener('click', function (e) { localPos(e); scenes[cur].click(px, py); });
+
+  var last = performance.now();
+  function loop(now) {
+    var dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
+    mx += (tx - mx) * Math.min(1, dt * 3);
+    scenes[cur].draw(dt);
+    drawBubbles(dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 })();
 </script>
 </body>
