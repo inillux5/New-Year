@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>С Новым годом!</title>
+<style>
+  :root {
+    --bg1: #0b1a3a;
+    --bg2: #16305e;
+    --gold: #ffd36b;
+    --red: #e8473f;
+    --text: #f4f7ff;
+    --card: rgba(255, 255, 255, 0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 60%, #1d3d70);
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  canvas.layer { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #snow { z-index: 1; }
+  #fire { z-index: 2; }
+  main { position: relative; z-index: 3; max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  header { text-align: center; padding-top: 8px; }
+  h1 { margin: 8px 0 0; font-size: clamp(28px, 6vw, 48px); color: var(--gold); text-shadow: 0 0 20px rgba(255, 211, 107, .5); }
+  .sub { opacity: .8; margin: 6px 0 0; }
+  .tree { width: min(300px, 70vw); height: auto; display: block; margin: 8px auto 0; }
+  .twinkle { animation: tw 1.6s infinite ease-in-out; }
+  .twinkle:nth-child(2n) { animation-delay: .5s; }
+  .twinkle:nth-child(3n) { animation-delay: 1s; }
+  @keyframes tw { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+  .timer { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 20px 0 8px; }
+  .unit { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; padding: 12px 16px; min-width: 84px; text-align: center; backdrop-filter: blur(4px); }
+  .unit b { display: block; font-size: clamp(28px, 7vw, 44px); color: var(--gold); font-variant-numeric: tabular-nums; }
+  .unit span { font-size: 13px; opacity: .8; }
+  #hello { text-align: center; font-size: 22px; margin: 6px 0 0; min-height: 28px; }
+
+  section { margin-top: 36px; }
+  h2 { text-align: center; font-size: 24px; margin: 0 0 14px; }
+  .box { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; padding: 22px 20px; text-align: center; backdrop-filter: blur(4px); }
+  .box p { font-size: clamp(18px, 3.6vw, 24px); margin: 0 0 16px; min-height: 2.6em; }
+  .lead { color: var(--gold); }
+  button {
+    font: inherit; cursor: pointer; border: 0; border-radius: 999px; padding: 10px 22px;
+    background: var(--red); color: #fff; box-shadow: 0 4px 14px rgba(232, 71, 63, .4);
+  }
+  button:hover { filter: brightness(1.1); }
+
+  .goods { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .good { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; overflow: hidden; text-align: center; }
+  .good .pic { height: 140px; display: grid; place-items: center; font-size: 15px; opacity: .9;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 12px, rgba(255,255,255,.12) 12px 24px); }
+  .good h3 { margin: 12px 8px 4px; font-size: 17px; }
+  .good .price { color: var(--gold); margin-bottom: 12px; }
+
+  .salut { text-align: center; }
+  footer { text-align: center; opacity: .6; margin-top: 40px; font-size: 14px; }
+</style>
+</head>
+<body>
+<canvas id="snow" class="layer"></canvas>
+<canvas id="fire" class="layer"></canvas>
+
+<main>
+  <header>
+    <h1>С наступающим Новым годом!</h1>
+    <p class="sub">Волшебство уже совсем рядом</p>
+    <svg class="tree" viewBox="0 0 300 340" aria-hidden="true">
+      <polygon points="150,10 160,40 190,40 166,58 176,88 150,70 124,88 134,58 110,40 140,40" fill="#ffd36b"/>
+      <polygon points="150,50 215,140 85,140" fill="#1f8a4c"/>
+      <polygon points="150,100 235,205 65,205" fill="#26a05a"/>
+      <polygon points="150,160 258,275 42,275" fill="#2fb868"/>
+      <rect x="132" y="275" width="36" height="40" fill="#7a4a24"/>
+      <g>
+        <circle class="twinkle" cx="150" cy="95" r="6" fill="#e8473f"/>
+        <circle class="twinkle" cx="120" cy="125" r="6" fill="#ffd36b"/>
+        <circle class="twinkle" cx="180" cy="130" r="6" fill="#5bb8ff"/>
+        <circle class="twinkle" cx="135" cy="175" r="7" fill="#ffd36b"/>
+        <circle class="twinkle" cx="170" cy="190" r="7" fill="#e8473f"/>
+        <circle class="twinkle" cx="105" cy="215" r="7" fill="#5bb8ff"/>
+        <circle class="twinkle" cx="200" cy="232" r="7" fill="#ffd36b"/>
+        <circle class="twinkle" cx="150" cy="245" r="7" fill="#e8473f"/>
+        <circle class="twinkle" cx="80" cy="262" r="6" fill="#ffd36b"/>
+        <circle class="twinkle" cx="225" cy="262" r="6" fill="#5bb8ff"/>
+      </g>
+    </svg>
+  </header>
+
+  <div class="timer" id="timer">
+    <div class="unit"><b id="d">0</b><span>дней</span></div>
+    <div class="unit"><b id="h">00</b><span>часов</span></div>
+    <div class="unit"><b id="m">00</b><span>минут</span></div>
+    <div class="unit"><b id="s">00</b><span>секунд</span></div>
+  </div>
+  <div id="hello"></div>
+
+  <section>
+    <h2>Пусть в новом году будет...</h2>
+    <div class="box">
+      <p><span class="lead">Пусть в новом году будет </span><span id="wish"></span></p>
+      <button id="wishBtn">Ещё пожелание</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Задание на сегодня</h2>
+    <div class="box">
+      <p id="task"></p>
+      <button id="taskBtn">Другое задание</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Подарки от нас</h2>
+    <div class="goods" id="goods"></div>
+  </section>
+
+  <section class="salut">
+    <h2>Салют</h2>
+    <div class="box">
+      <p>Кликай в любом месте страницы или жми кнопку.</p>
+      <button id="fireBtn">Запустить салют</button>
+    </div>
+  </section>
+
+  <footer>Хорошего праздника!</footer>
+</main>
+
+<script>
+(function () {
+  // ----- данные -----
+  var wishes = [
+    'много тёплых вечеров с близкими', 'здоровье крепче, чем ёлочные игрушки', 'удача, которая не отпускает до декабря',
+    'побольше поводов для смеха', 'красивые путешествия и лёгкие дороги', 'идеи, которые получаются с первого раза',
+    'спокойные выходные без срочных дел', 'неожиданные приятные новости', 'достаток, от которого хочется делиться',
+    'друзья, которые всегда на связи', 'уют, в котором не хочется уходить', 'мечты, которые сбываются быстрее, чем думаешь',
+    'хороший сон и бодрое утро', 'вкусная еда и хорошая компания', 'много причин гордиться собой'
+  ];
+  var tasks = [
+    'Послушай новогоднюю песню', 'Прочитай стих про Новый год', 'Съешь мандаринку', 'Подари другу конфету',
+    'Напиши тёплое сообщение тому, с кем давно не общался', 'Нарисуй снежинку на листочке', 'Включи гирлянду и посиди минуту в тишине',
+    'Выпей какао или горячий чай с чем-нибудь вкусным', 'Расскажи кому-нибудь смешную историю', 'Загадай желание и никому не говори',
+    'Вспомни самое доброе событие этого года', 'Посмотри любимый новогодний фильм'
+  ];
+  var goods = [
+    { name: 'Товар 1', price: 'цена' }, { name: 'Товар 2', price: 'цена' },
+    { name: 'Товар 3', price: 'цена' }, { name: 'Товар 4', price: 'цена' }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  function pick(list, prev) {
+    var x;
+    do { x = list[Math.floor(Math.random() * list.length)]; } while (x === prev && list.length > 1);
+    return x;
+  }
+
+  // ----- пожелание и задание -----
+  var wish = '', task = '';
+  function newWish() { wish = pick(wishes, wish); $('wish').textContent = wish + '.'; }
+  function newTask() { task = pick(tasks, task); $('task').textContent = task + '.'; }
+  $('wishBtn').onclick = newWish;
+  $('taskBtn').onclick = newTask;
+  newWish(); newTask();
+
+  // ----- товары-заглушки -----
+  $('goods').innerHTML = goods.map(function (g) {
+    return '<div class="good"><div class="pic">фото товара</div><h3>' + g.name + '</h3><div class="price">' + g.price + '</div></div>';
+  }).join('');
+
+  // ----- таймер -----
+  var celebrated = false;
+  function tick() {
+    var now = new Date();
+    var target = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
+    var left = target - now;
+    var sec = Math.floor(left / 1000);
+    $('d').textContent = Math.floor(sec / 86400);
+    $('h').textContent = ('0' + Math.floor(sec % 86400 / 3600)).slice(-2);
+    $('m').textContent = ('0' + Math.floor(sec % 3600 / 60)).slice(-2);
+    $('s').textContent = ('0' + sec % 60).slice(-2);
+    // 1 января — новый отсчет уже на следующий год, поздравляем
+    var isJan1 = now.getMonth() === 0 && now.getDate() === 1;
+    $('hello').textContent = isJan1 ? 'С Новым годом!' : '';
+    if (isJan1 && !celebrated) { celebrated = true; for (var i = 0; i < 8; i++) setTimeout(launch, i * 400); }
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ----- холсты -----
+  var snow = $('snow'), sc = snow.getContext('2d');
+  var fire = $('fire'), fc = fire.getContext('2d');
+  var W, H;
+  function resize() {
+    W = snow.width = fire.width = window.innerWidth;
+    H = snow.height = fire.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize); resize();
+
+  // снег
+  var flakes = [];
+  for (var i = 0; i < 90; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 3, v: .4 + Math.random() * 1.2, p: Math.random() * 6 });
+  // салют
+  var sparks = [];
+  function launch(x, y) {
+    x = x === undefined ? 60 + Math.random() * (W - 120) : x;
+    y = y === undefined ? 60 + Math.random() * H * .4 : y;
+    var hue = Math.floor(Math.random() * 360);
+    for (var k = 0; k < 70; k++) {
+      var a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4.5;
+      sparks.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, hue: hue + Math.random() * 40 });
+    }
+  }
+  window.launch = launch;
+
+  function frame() {
+    sc.clearRect(0, 0, W, H);
+    sc.fillStyle = 'rgba(255,255,255,.85)';
+    flakes.forEach(function (f) {
+      f.y += f.v; f.p += .02; f.x += Math.sin(f.p) * .5;
+      if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; }
+      sc.beginPath(); sc.arc(f.x, f.y, f.r, 0, 6.3); sc.fill();
+    });
+    fc.clearRect(0, 0, W, H);
+    sparks = sparks.filter(function (p) { return p.life > 0; });
+    sparks.forEach(function (p) {
+      p.x += p.vx; p.y += p.vy; p.vy += .05; p.vx *= .985; p.life -= .014;
+      fc.fillStyle = 'hsla(' + p.hue + ',100%,65%,' + Math.max(p.life, 0) + ')';
+      fc.beginPath(); fc.arc(p.x, p.y, 2.2, 0, 6.3); fc.fill();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('button')) return;
+    launch(e.clientX, e.clientY);
+  });
+  $('fireBtn').addEventListener('click', function () { for (var i = 0; i < 5; i++) setTimeout(launch, i * 250); });
+  setInterval(function () { if (!document.hidden) launch(); }, 6000);
+})();
+</script>
+</body>
+</html>
