@@ -136,6 +136,8 @@
   .steps span { flex: 1; text-align: center; font-size: 13px; padding: 7px 2px; border-radius: 999px; background: var(--card); opacity: .6; }
   .steps span.on { background: var(--red); opacity: 1; font-weight: 600; }
   .steps span.done { background: #2f7a4f; opacity: 1; }
+  .intro { text-align: center; margin: 0 0 12px; opacity: .92; }
+  #start { margin-top: 20px; }
   .count { text-align: center; color: var(--gold); margin: 0 0 10px; }
   .mini { text-align: center; margin: 14px 0 8px; opacity: .9; }
   .promo { border-color: rgba(255,211,107,.6); }
@@ -161,8 +163,13 @@
     <div id="streak" hidden></div>
   </header>
 
+  <section class="gate" id="start">
+    <p class="intro">Каждый день тебя ждёт новогодний подарок. Нажми кнопку, поиграй с картинкой, получи пожелание и задание на сегодня, а в конце тебя ждёт промокод.</p>
+    <button id="todayBtn" class="main">Открыть подарок сегодняшнего дня</button>
+  </section>
+
   <section id="cal">
-    <h2>Календарь подарков</h2>
+    <h2>Все дни календаря</h2>
     <div class="cal" id="calGrid"></div>
     <div class="center"><button id="calMore" class="ghost">Показать весь календарь</button></div>
   </section>
@@ -174,19 +181,20 @@
   <p class="scene" id="sceneName"></p>
 
   <section class="gate" id="gate">
-    <p class="small">Подарок дня: нажми на кнопку</p>
+    <p class="small" id="gateText"></p>
     <button id="actBtn" class="main"></button>
   </section>
 
   <section class="play lock" id="play">
-    <h2>Крути ниже и поиграй</h2>
+    <h2>Шаг 2. Найди волшебство</h2>
+    <p class="intro">Нажимай пальцем на картинку: нужно нажать 5 раз в любых местах.</p>
     <p id="hint"></p>
     <p class="count" id="gameCount"></p>
     <div class="stagewrap"><canvas id="stage"></canvas></div>
   </section>
 
   <section id="reveal" class="stack fadein" hidden>
-    <h2>Ты прошёл игру!</h2>
+    <h2>Шаг 3. Ты прошёл игру!</h2>
     <div class="box">
       <p><span class="lead">Желаю тебе в новом году, </span><span id="wish"></span></p>
     </div>
@@ -195,13 +203,14 @@
       <p id="task"></p>
     </div>
     <div class="center">
+      <p class="intro">Выполни задание и нажми кнопку, получишь награду.</p>
       <button id="doneBtn">Сделаю, спасибо!</button>
       <div id="doneNote" hidden>Спасибо! Завтра тебя ждёт новое пожелание, задание и картинка.</div>
     </div>
   </section>
 
   <section id="shop" class="fadein" hidden>
-    <h2>Награда за задание</h2>
+    <h2>Шаг 4. Твоя награда</h2>
     <p class="mini">Праздник пахнет мандаринами, а ещё немного новыми вещами. Medos дарит тебе промокод:</p>
     <div class="box promo">
       <div class="code" id="promoCode">SALE</div>
@@ -1400,6 +1409,7 @@
     }
     shift = n - dayN; openChain();
   };
+  $('todayBtn').onclick = function () { shift = 0; openChain(); };
   function openChain() {
     chainOpen = true; $('chain').classList.remove('lock'); setDay(); goTo('steps');
   }
@@ -1411,6 +1421,7 @@
     $('hint').textContent = scenes[cur].hint;
     var d = new Date(n * 86400000), dd = ('0' + d.getUTCDate()).slice(-2) + '.' + ('0' + (d.getUTCMonth() + 1)).slice(-2);
     $('sceneName').textContent = (shift ? 'Тест, ' + dd : 'Сегодня') + ': ' + titles[cur];
+    $('gateText').textContent = 'Шаг 1. Нажми на большую кнопку: «' + actTitle[plan[cur]] + '»';
     $('actBtn').textContent = actTitle[plan[cur]];
     $('actBtn').disabled = false;
     $('actBtn').onclick = acts[plan[cur]];
