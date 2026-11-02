@@ -114,6 +114,34 @@
   #doneNote { color: var(--gold); font-size: 18px; }
   .toast { position: fixed; z-index: 10; left: 50%; top: 90px; transform: translateX(-50%); background: rgba(0,0,0,.65); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 20px; pointer-events: none; text-align: center; max-width: 90vw; }
   footer { text-align: center; opacity: .6; margin-top: 40px; font-size: 14px; }
+
+  /* календарь подарков и шаги пути */
+  .lock { height: 0 !important; overflow: hidden !important; visibility: hidden !important; margin: 0 !important; padding: 0 !important; }
+  #cal h2 { margin-bottom: 10px; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cell { padding: 6px 0; border-radius: 12px; background: var(--card); border: 1px solid rgba(255,255,255,.15); box-shadow: none; color: var(--text);
+    display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
+  .cell b { font-size: 18px; }
+  .cell i { font-style: normal; font-size: 11px; opacity: .75; }
+  .cell.past { background: rgba(255,255,255,.14); }
+  .cell.future { opacity: .45; cursor: default; }
+  .cell.today { background: var(--red); border-color: var(--gold); animation: pulse 2.2s infinite; }
+  .cell.done { border-color: #4fbf7f; }
+  .cell.done i { color: #7dff9d; opacity: 1; }
+  .cell.sel { outline: 2px solid var(--gold); }
+  .cell.off { display: none; }
+  button.ghost { background: rgba(255,255,255,.12); box-shadow: none; padding: 9px 20px; }
+  #streak { text-align: center; color: var(--gold); margin: 8px 0 0; }
+  .steps { position: sticky; top: 0; z-index: 6; display: flex; gap: 6px; padding: 8px 0; background: rgba(11,26,58,.92); margin-top: 24px; }
+  .steps span { flex: 1; text-align: center; font-size: 13px; padding: 7px 2px; border-radius: 999px; background: var(--card); opacity: .6; }
+  .steps span.on { background: var(--red); opacity: 1; font-weight: 600; }
+  .steps span.done { background: #2f7a4f; opacity: 1; }
+  .count { text-align: center; color: var(--gold); margin: 0 0 10px; }
+  .mini { text-align: center; margin: 14px 0 8px; opacity: .9; }
+  .promo { border-color: rgba(255,211,107,.6); }
+  .promo .code { font-size: 38px; font-weight: 700; letter-spacing: 6px; color: var(--gold); margin-bottom: 12px; }
+  #shop .goods { margin-top: 14px; }
+  section, .steps, #sceneName { scroll-margin-top: 52px; }
 </style>
 </head>
 <body>
@@ -124,30 +152,45 @@
   <header>
     <h1>До Нового года осталось:</h1>
     <div class="timer" id="timer">
-      <div class="unit"><b id="d">0</b><span>дней</span></div>
+      <div class="unit"><b id="d">0</b><span id="dl">дней</span></div>
       <div class="unit"><b id="h">00</b><span>часов</span></div>
       <div class="unit"><b id="m">00</b><span>минут</span></div>
       <div class="unit"><b id="s">00</b><span>секунд</span></div>
     </div>
     <div id="hello"></div>
+    <div id="streak" hidden></div>
   </header>
+
+  <section id="cal">
+    <h2>Календарь подарков</h2>
+    <div class="cal" id="calGrid"></div>
+    <div class="center"><button id="calMore" class="ghost">Показать весь календарь</button></div>
+  </section>
+
+  <div id="chain" class="lock">
+  <div class="steps" id="steps">
+    <span>1. Подарок</span><span>2. Игра</span><span>3. Задание</span><span>4. Награда</span>
+  </div>
+  <p class="scene" id="sceneName"></p>
 
   <section class="gate" id="gate">
     <p class="small">Подарок дня: нажми на кнопку</p>
     <button id="actBtn" class="main"></button>
   </section>
 
-  <section id="next">
-    <div class="box" id="pending">
-      <p id="pendingText"></p>
-    </div>
+  <section class="play lock" id="play">
+    <h2>Крути ниже и поиграй</h2>
+    <p id="hint"></p>
+    <p class="count" id="gameCount"></p>
+    <div class="stagewrap"><canvas id="stage"></canvas></div>
   </section>
 
   <section id="reveal" class="stack fadein" hidden>
-    <h2>Пожелание и задание на сегодня</h2>
+    <h2>Ты прошёл игру!</h2>
     <div class="box">
-      <p><span class="lead">Пусть в новом году будет </span><span id="wish"></span></p>
+      <p><span class="lead">Желаю тебе в новом году, </span><span id="wish"></span></p>
     </div>
+    <p class="mini">Вот твоё задание на сегодня:</p>
     <div class="box">
       <p id="task"></p>
     </div>
@@ -158,15 +201,16 @@
   </section>
 
   <section id="shop" class="fadein" hidden>
-    <h2>Подарки от нас</h2>
+    <h2>Награда за задание</h2>
+    <p class="mini">Праздник пахнет мандаринами, а ещё немного новыми вещами. Medos дарит тебе промокод:</p>
+    <div class="box promo">
+      <div class="code" id="promoCode">SALE</div>
+      <button id="copyBtn">Скопировать промокод</button>
+    </div>
     <div class="goods" id="goods"></div>
+    <div class="center"><button id="shareBtn" class="ghost">Поделиться с другом</button></div>
   </section>
-
-  <section class="play">
-    <p class="scene" id="sceneName"></p>
-    <p id="hint"></p>
-    <div class="stagewrap"><canvas id="stage"></canvas></div>
-  </section>
+  </div>
 
   <div class="giftov" id="giftov">
     <div class="giftbox">
@@ -207,37 +251,49 @@
   }
 
   // ================= тексты =================
+  // пожелания читаются после «Желаю тебе в новом году, »; длины 30 и 24 не делятся на 7, шаг по дням 7 обходит все по очереди
   var wishes = [
-    'много тёплых вечеров с близкими', 'здоровье крепче, чем ёлочные игрушки', 'удача, которая не отпускает до декабря',
-    'побольше поводов для смеха', 'красивые путешествия и лёгкие дороги', 'идеи, которые получаются с первого раза',
-    'спокойные выходные без срочных дел', 'неожиданные приятные новости', 'достаток, от которого хочется делиться',
-    'друзья, которые всегда на связи', 'уют, в котором не хочется уходить', 'мечты, которые сбываются быстрее, чем думаешь',
-    'хороший сон и бодрое утро', 'вкусная еда и хорошая компания', 'много причин гордиться собой'
+    'чтобы дома всегда пахло мандаринами и уютом', 'чтобы рядом были те, с кем не нужно притворяться', 'чтобы всё задуманное не откладывалось, а получалось',
+    'чтобы здоровья хватало и на дела, и на радость', 'чтобы каждый день находился повод улыбнуться', 'чтобы деньги приходили легко, а тратились с удовольствием',
+    'чтобы любимое дело приносило и радость, и достаток', 'чтобы в доме было тепло, даже когда за окном метель', 'чтобы встречи были чаще, а прощания реже',
+    'чтобы удача заглядывала без стука', 'чтобы мечты не пылились, а сбывались по одной', 'чтобы друзья не забывали звонить',
+    'чтобы всегда был повод гордиться собой', 'чтобы выспаться хватало и в будни', 'чтобы путешествия случались не только в планах',
+    'чтобы всё хорошее, что ты сделал, вернулось добром', 'чтобы сил хватало на всё, что любишь', 'чтобы в семье всегда было место смеху',
+    'чтобы утро начиналось с хорошего настроения', 'чтобы новые идеи приходили вовремя', 'чтобы каждый вечер хотелось домой',
+    'чтобы вокруг было больше добрых людей', 'чтобы хватало времени на любимое хобби', 'чтобы любая сложность решалась спокойно',
+    'чтобы подарки были неожиданными, а сюрпризы приятными', 'чтобы ты сам радовал себя почаще', 'чтобы год подарил новые знакомства и тёплые встречи',
+    'чтобы дорога всегда была ровной', 'чтобы счастье было не редким гостем, а постоянным жителем', 'чтобы следующий Новый год ты встретил ещё радостнее'
   ];
   var tasks = [
-    'Послушай новогоднюю песню', 'Прочитай стих про Новый год', 'Съешь мандаринку', 'Подари другу конфету',
-    'Напиши тёплое сообщение тому, с кем давно не общался', 'Нарисуй снежинку на листочке', 'Включи гирлянду и посиди минуту в тишине',
-    'Выпей какао или горячий чай с чем-нибудь вкусным', 'Расскажи кому-нибудь смешную историю', 'Загадай желание и никому не говори',
-    'Вспомни самое доброе событие этого года', 'Посмотри любимый новогодний фильм'
+    'Включи гирлянду, выключи большой свет и посиди минуту просто так, глядя на огоньки',
+    'Напиши человеку, которого давно не слышал, три тёплых слова и пожелай ему хорошей зимы',
+    'Включи любимую новогоднюю песню и станцуй под неё, даже если никто не видит',
+    'Загадай желание на Новый год и запиши его на бумажке. Спрячь, в январе прочтёшь',
+    'Нарисуй или вырежи одну снежинку и приклей её на окно',
+    'Завари самый уютный напиток: какао, глинтвейн или чай с мандарином. И никуда не спеши',
+    'Вспомни три хороших события этого года и расскажи о них кому-нибудь',
+    'Сделай маленькую новогоднюю деталь у себя дома: ленточку, шарик, веточку в вазе',
+    'Найди старую новогоднюю игрушку или открытку и вспомни, откуда она у тебя',
+    'Позвони кому-то из близких и просто скажи «с наступающим»',
+    'Выйди на улицу на пять минут, вдохни морозный воздух и найди самую красивую подсветку на своей улице',
+    'Придумай смешное прозвище для своего Деда Мороза и расскажи его домашним',
+    'Составь список из трёх подарков, которые хочешь сделать своими руками или с душой',
+    'Съешь мандарин и загадай желание на каждую дольку',
+    'Посмотри любимый новогодний фильм хотя бы десять минут',
+    'Напиши открытку или сообщение любимому человеку с самым добрым пожеланием на год',
+    'Сфотографируй самый новогодний уголок у себя дома и отправь другу',
+    'Сделай что-то доброе для незнакомца: улыбнись, придержи дверь, оставь добрый комментарий',
+    'Расскажи вслух историю самого запомнившегося новогоднего праздника из детства',
+    'Достань тёплый плед, носки и книгу и устрой себе пятнадцать минут новогодней тишины',
+    'Составь список, что оставишь в старом году и что возьмёшь с собой в новый',
+    'Выбери одну сладость к празднику и порадуй ею себя или близкого',
+    'Придумай новогодний тост и произнеси его вслух перед зеркалом',
+    'Похвали себя за что-то, что получилось в этом году, и скажи это вслух'
   ];
   var goods = [
     { name: 'Товар 1', price: 'цена' }, { name: 'Товар 2', price: 'цена' },
     { name: 'Товар 3', price: 'цена' }, { name: 'Товар 4', price: 'цена' }
   ];
-  // больше вариантов, чтобы месяц не повторялись (длины 30 и 24 не делятся на 7, шаг по дням 7 обходит все по очереди)
-  wishes = wishes.concat([
-    'чашка чего-нибудь горячего в нужный момент', 'встречи, после которых хочется улыбаться', 'тихое утро и мягкий плед',
-    'смелость начать то, что давно откладывал', 'вкусные сюрпризы без повода', 'аккуратные дела, которые делаются сами',
-    'интересные книги и хорошие фильмы', 'лёгкие дороги без пробок', 'тёплые слова от тех, кто важен',
-    'много света, даже когда за окном серо', 'смех до слёз хотя бы раз в неделю', 'спокойствие, которое не сбить пустяками',
-    'маленькие победы каждый день', 'подарки, которые угадали с первого раза', 'уверенность, что всё получится'
-  ]);
-  tasks = tasks.concat([
-    'Обними кого-нибудь из близких', 'Скажи спасибо человеку, которого обычно не замечаешь', 'Сделай один шаг к давней мечте',
-    'Выйди на пять минут на свежий воздух', 'Приготовь что-нибудь вкусное и поделись', 'Отложи телефон на час',
-    'Улыбнись первому встречному', 'Убери одну вещь, которая давно мешает', 'Запиши три хороших вещи за сегодня',
-    'Позвони тому, по кому скучаешь', 'Включи любимую музыку и потанцуй', 'Нарисуй открытку и отправь кому-нибудь'
-  ]);
   var nd = new Date();
   var dayN = Math.floor(Date.UTC(nd.getFullYear(), nd.getMonth(), nd.getDate()) / 86400000);
   var dayKey = String(dayN);
@@ -248,12 +304,17 @@
   }).join('');
 
   // ================= таймер =================
+  function plural(n) {
+    var a = n % 10, b = n % 100;
+    return a === 1 && b !== 11 ? 'день' : (a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'дня' : 'дней');
+  }
   var celebrated = false;
   function tick() {
     var now = new Date();
     var target = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
     var sec = Math.floor((target - now) / 1000);
     $('d').textContent = Math.floor(sec / 86400);
+    $('dl').textContent = plural(Math.floor(sec / 86400));
     $('h').textContent = ('0' + Math.floor(sec % 86400 / 3600)).slice(-2);
     $('m').textContent = ('0' + Math.floor(sec % 3600 / 60)).slice(-2);
     $('s').textContent = ('0' + sec % 60).slice(-2);
@@ -374,12 +435,48 @@
     $('actBtn').disabled = true; $('actBtn').textContent = 'Открываем подарок...';
     setTimeout(function () {
       giftAnim(function () {
-        $('pending').hidden = true; $('reveal').hidden = false;
+        startGame();
         $('actBtn').textContent = 'Подарок открыт, крути вниз';
       });
     }, delay);
   }
-  function showDone() { $('doneBtn').hidden = true; $('doneNote').hidden = false; $('shop').hidden = false; }
+  // путь: 1 подарок -> 2 игра в сцене (GOAL нажатий) -> 3 пожелание и задание -> 4 награда (промокод и товары)
+  var step = 1, gameCount = 0, GOAL = 5;
+  function setStep(n) {
+    step = n;
+    var s = $('steps').children;
+    for (var q = 0; q < s.length; q++) s[q].className = q + 1 < n ? 'done' : (q + 1 === n ? 'on' : '');
+  }
+  function goTo(id) { setTimeout(function () { $(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80); }
+  function gameText() { $('gameCount').textContent = 'Найдено волшебства: ' + gameCount + ' из ' + GOAL + '. Нажимай на сцену.'; }
+  function startGame() {
+    gameCount = 0; gameText(); setStep(2);
+    $('play').classList.remove('lock'); sizeStage(); goTo('play');
+  }
+  function finishGame() {
+    setStep(3); confettiBurst(); toast('Ты прошёл игру!');
+    $('reveal').hidden = false; goTo('reveal');
+  }
+  function showDone() {
+    $('doneBtn').hidden = true; $('doneNote').hidden = false; $('shop').hidden = false;
+    setStep(4); markDone(dayN + shift);
+  }
+  function copyText(txt, msg) {
+    function ok() { toast(msg); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { toast('Не получилось скопировать'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+  }
+  $('copyBtn').onclick = function () { copyText('SALE', 'Промокод SALE скопирован'); };
+  $('shareBtn').onclick = function () {
+    var text = 'Я выполнил задание дня, попробуй и ты!', url = location.origin + location.pathname;
+    if (navigator.share) navigator.share({ title: 'С Новым годом!', text: text, url: url }).catch(function () {});
+    else copyText(text + ' ' + url, 'Ссылка скопирована, отправь другу');
+  };
   // действие дня (какое именно — по сцене); после обновления страницы всё начинается заново, можно пробовать ещё раз
   var acts = {
     cracker: function () { if (busy) return; toast('Хлоп!'); confettiBurst(); ritual(1200); },
@@ -409,7 +506,8 @@
 
   function sizeStage() {
     var w = stage.parentNode.clientWidth;
-    var h = Math.max(380, Math.min(620, Math.round(window.innerHeight * .66)));
+    if (!w) return;
+    var h =Math.max(380, Math.min(620, Math.round(window.innerHeight * .66)));
     if (w < 520) h = Math.max(380, Math.min(480, Math.round(window.innerHeight * .6)));
     T = w < 600 ? 1.4 : 1;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1224,7 +1322,52 @@
   var titles = ['Зимняя деревня', 'Волшебный лес', 'Мастерская снеговика', 'Полярная ночь', 'Каток с каруселью', 'Камин и подарки'];
   var actTitle = { cracker: 'Хлопнуть хлопушку', sparkler: 'Зажечь бенгальский огонь', salute: 'Запустить салют' };
   var DAY0 = 20756; // 30.10.2026: деревня и салют, завтра лес и бенгальские огни, потом по кругу
-  var shift = 0; // сдвиг в днях для тестовой панели (адрес с ?test), обычному посетителю всегда 0
+  var shift = 0; // сдвиг в днях выбранного окошка календаря (и тестовой панели с ?test); для сегодняшнего окошка 0
+  var testMode = /[?&]test\b/.test(location.search), chainOpen = false, calAll = false;
+  var LAST = 62; // окошек в календаре: с 30.10 по 31.12 включительно
+  var MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  var doneList = [];
+  try { doneList = JSON.parse(localStorage.getItem('nyDone') || '[]'); } catch (e) { doneList = []; }
+  if (!Array.isArray(doneList)) doneList = [];
+  function markDone(n) { // в памяти браузера храним только отметки «окошко пройдено», сам ритуал дня можно проходить заново
+    if (doneList.indexOf(n) < 0) doneList.push(n);
+    try { localStorage.setItem('nyDone', JSON.stringify(doneList)); } catch (e) {}
+    renderCal();
+  }
+  function streakCount() {
+    var n = doneList.indexOf(dayN) >= 0 ? dayN : dayN - 1, c = 0;
+    while (doneList.indexOf(n) >= 0) { c++; n--; }
+    return c;
+  }
+  function renderCal() {
+    var html = '', today = Math.max(0, Math.min(LAST, dayN - DAY0)), from = Math.floor(today / 7) * 7;
+    for (var q = 0; q <= LAST; q++) {
+      var n = DAY0 + q, d = new Date(n * 86400000), isDone = doneList.indexOf(n) >= 0;
+      var cls = 'cell ' + (n < dayN ? 'past' : n === dayN ? 'today' : 'future') + (isDone ? ' done' : '') + (chainOpen && n === dayN + shift ? ' sel' : '');
+      if (!calAll && (q < from || q >= from + 7)) cls += ' off';
+      html += '<button class="' + cls + '" data-n="' + n + '"><b>' + d.getUTCDate() + '</b><i>' + (isDone ? 'готово' : MON[d.getUTCMonth()]) + '</i></button>';
+    }
+    $('calGrid').innerHTML = html;
+    $('calMore').textContent = calAll ? 'Свернуть календарь' : 'Показать весь календарь';
+    var st = streakCount();
+    $('streak').hidden = st < 2;
+    $('streak').textContent = 'Ты с нами ' + st + ' ' + plural(st) + ' подряд, так держать!';
+  }
+  $('calMore').onclick = function () { calAll = !calAll; renderCal(); };
+  $('calGrid').onclick = function (e) {
+    var b = e.target.closest ? e.target.closest('.cell') : null;
+    if (!b) return;
+    var n = +b.getAttribute('data-n');
+    if (n > dayN && !testMode) {
+      var d = new Date(n * 86400000);
+      toast('Это окошко откроется ' + ('0' + d.getUTCDate()).slice(-2) + '.' + ('0' + (d.getUTCMonth() + 1)).slice(-2));
+      return;
+    }
+    shift = n - dayN; openChain();
+  };
+  function openChain() {
+    chainOpen = true; $('chain').classList.remove('lock'); setDay(); goTo('steps');
+  }
   function setDay() {
     var n = dayN + shift;
     cur = (((n - DAY0) % scenes.length) + scenes.length) % scenes.length;
@@ -1236,20 +1379,21 @@
     $('actBtn').textContent = actTitle[plan[cur]];
     $('actBtn').disabled = false;
     $('actBtn').onclick = acts[plan[cur]];
-    $('pendingText').textContent = 'Нажми кнопку «' + actTitle[plan[cur]] + '» выше, и здесь появятся пожелание и задание на сегодня. А в самом низу страницы можно поиграть со сценой дня.';
-    // ритуал начинается заново
-    busy = false; bubbles = [];
+    // путь начинается заново
+    busy = false; bubbles = []; gameCount = 0; setStep(1);
     $('giftov').classList.remove('show', 'shake', 'open');
-    $('pending').hidden = false; $('reveal').hidden = true; $('shop').hidden = true;
+    $('play').classList.add('lock'); $('reveal').hidden = true; $('shop').hidden = true;
     $('doneBtn').hidden = false; $('doneNote').hidden = true;
     $('tLabel').textContent = (shift > 0 ? '+' + shift : shift) + ' дн. (' + dd + '), ' + titles[cur];
+    renderCal();
   }
   setDay();
-  if (/[?&]test\b/.test(location.search)) {
+  if (testMode) {
     $('testbar').hidden = false;
-    $('tPrev').onclick = function () { shift--; setDay(); };
-    $('tNext').onclick = function () { shift++; setDay(); };
-    $('tNow').onclick = function () { shift = 0; setDay(); };
+    var testGo = function () { if (chainOpen) setDay(); else openChain(); };
+    $('tPrev').onclick = function () { shift--; testGo(); };
+    $('tNext').onclick = function () { shift++; testGo(); };
+    $('tNow').onclick = function () { shift = 0; testGo(); };
   }
 
   function localPos(e) {
@@ -1258,14 +1402,16 @@
   }
   stage.addEventListener('pointermove', function (e) { localPos(e); tx = (px / W - .5) * 2; });
   stage.addEventListener('pointerleave', function () { tx = 0; });
-  stage.addEventListener('click', function (e) { localPos(e); scenes[cur].click(px, py); });
+  stage.addEventListener('click', function (e) {
+    localPos(e); scenes[cur].click(px, py);
+    if (step === 2) { gameCount++; gameText(); if (gameCount >= GOAL) finishGame(); }
+  });
 
   var last = performance.now();
   function loop(now) {
     var dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
     mx += (tx - mx) * Math.min(1, dt * 3);
-    scenes[cur].draw(dt);
-    drawBubbles(dt);
+    if (!$('play').classList.contains('lock')) { scenes[cur].draw(dt); drawBubbles(dt); }
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
