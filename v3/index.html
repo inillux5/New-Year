@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Чат с Дедом Морозом</title>
+<style>
+  :root {
+    --bg1: #0b1a3a;
+    --bg2: #16305e;
+    --gold: #ffd36b;
+    --red: #e8473f;
+    --text: #f4f7ff;
+    --card: rgba(255, 255, 255, 0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif; font-size: 17px; line-height: 1.4; color: var(--text);
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 60%, #1d3d70); background-attachment: fixed;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  #snow { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+  [hidden] { display: none !important; }
+
+  .top { position: sticky; top: 0; z-index: 10; background: rgba(11,26,58,.93); border-bottom: 1px solid rgba(255,255,255,.12); }
+  .topin { max-width: 640px; margin: 0 auto; padding: 10px 14px; display: flex; align-items: center; gap: 12px; }
+  .ava { width: 46px; height: 46px; flex: none; }
+  .who b { display: block; }
+  .who span { font-size: 13px; opacity: .75; }
+  .left { margin-left: auto; text-align: right; font-size: 13px; color: var(--gold); }
+
+  main { position: relative; z-index: 3; max-width: 640px; margin: 0 auto; padding: 16px 14px 0; }
+  #chat { display: flex; flex-direction: column; gap: 10px; }
+  .m { max-width: 84%; padding: 10px 14px; border-radius: 18px; word-wrap: break-word; animation: pop .25s ease both; }
+  .m.in { align-self: flex-start; background: rgba(255,255,255,.14); border-bottom-left-radius: 6px; }
+  .m.me { align-self: flex-end; background: var(--red); border-bottom-right-radius: 6px; }
+  .m.narr { align-self: center; max-width: 92%; text-align: center; font-style: italic; font-size: 15px; opacity: .85; background: none; padding: 4px 8px; }
+  .who2 { display: block; font-size: 12px; color: var(--gold); margin-bottom: 2px; }
+  .dots span { display: inline-block; width: 7px; height: 7px; margin: 0 2px; border-radius: 50%; background: #fff; opacity: .4; animation: bl 1s infinite; }
+  .dots span:nth-child(2) { animation-delay: .2s; }
+  .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes bl { 50% { opacity: 1; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  #spacer { height: 190px; }
+
+  #choices { position: fixed; z-index: 12; left: 0; right: 0; bottom: 0; padding: 26px 14px 16px; background: linear-gradient(180deg, rgba(11,26,58,0), rgba(11,26,58,.96) 28%); }
+  #choiceIn { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+  button { font: inherit; color: #fff; cursor: pointer; border: 0; border-radius: 999px; padding: 14px 22px; font-size: 18px;
+    background: var(--red); box-shadow: 0 4px 14px rgba(232, 71, 63, .4); }
+  button.g { background: rgba(255,255,255,.16); box-shadow: none; }
+  button:hover { filter: brightness(1.1); }
+
+  .card { align-self: stretch; scroll-margin-top: 80px; background: var(--card); border: 1px solid rgba(255,211,107,.6); border-radius: 20px; padding: 18px 14px; text-align: center; animation: pop .4s ease both; }
+  .card .t { color: var(--gold); margin-bottom: 4px; }
+  .card .code { font-size: 38px; font-weight: 700; letter-spacing: 6px; color: var(--gold); margin-bottom: 12px; }
+  .goods { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 16px 0; }
+  .good { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; overflow: hidden; }
+  .good .pic { height: 90px; display: grid; place-items: center; font-size: 14px; opacity: .9;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 12px, rgba(255,255,255,.12) 12px 24px); }
+  .good h3 { margin: 8px 6px 2px; font-size: 16px; }
+  .good .price { color: var(--gold); margin-bottom: 8px; font-size: 15px; }
+  .card .row { display: flex; flex-direction: column; gap: 8px; }
+  .toast { position: fixed; z-index: 20; left: 50%; top: 80px; transform: translateX(-50%); background: rgba(0,0,0,.75); color: #fff; padding: 10px 22px; border-radius: 999px; pointer-events: none; text-align: center; max-width: 90vw; }
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+
+<div class="top">
+  <div class="topin">
+    <svg class="ava" viewBox="0 0 46 46" aria-hidden="true">
+      <circle cx="23" cy="23" r="23" fill="#16305e"/>
+      <ellipse cx="23" cy="32" rx="11" ry="11" fill="#fff"/>
+      <circle cx="23" cy="24" r="9" fill="#f6c9a8"/>
+      <path d="M12 22 Q23 0 34 22 Z" fill="#d6322b"/>
+      <rect x="11" y="19" width="24" height="6" rx="3" fill="#fff"/>
+      <circle cx="23" cy="5" r="3.5" fill="#fff"/>
+      <circle cx="19.5" cy="26" r="1.4" fill="#223"/><circle cx="26.5" cy="26" r="1.4" fill="#223"/>
+    </svg>
+    <div class="who"><b>Дед Мороз</b><span id="status">в сети</span></div>
+    <div class="left" id="chip"></div>
+  </div>
+</div>
+
+<main>
+  <div id="chat"></div>
+  <div id="spacer"></div>
+</main>
+
+<div id="choices" hidden><div id="choiceIn"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ================= тексты =================
+  // пожелания читаются после «Желаю тебе в новом году, »
+  var wishes = [
+    'чтобы дома всегда пахло мандаринами и уютом', 'чтобы рядом были те, с кем не нужно притворяться', 'чтобы всё задуманное не откладывалось, а получалось',
+    'чтобы здоровья хватало и на дела, и на радость', 'чтобы каждый день находился повод улыбнуться', 'чтобы деньги приходили легко, а тратились с удовольствием',
+    'чтобы любимое дело приносило и радость, и достаток', 'чтобы в доме было тепло, даже когда за окном метель', 'чтобы встречи были чаще, а прощания реже',
+    'чтобы удача заглядывала без стука', 'чтобы мечты не пылились, а сбывались по одной', 'чтобы друзья не забывали звонить',
+    'чтобы всегда был повод гордиться собой', 'чтобы выспаться хватало и в будни', 'чтобы путешествия случались не только в планах',
+    'чтобы всё хорошее, что ты сделал, вернулось добром', 'чтобы сил хватало на всё, что любишь', 'чтобы в семье всегда было место смеху',
+    'чтобы утро начиналось с хорошего настроения', 'чтобы новые идеи приходили вовремя', 'чтобы каждый вечер хотелось домой',
+    'чтобы вокруг было больше добрых людей', 'чтобы хватало времени на любимое хобби', 'чтобы любая сложность решалась спокойно',
+    'чтобы подарки были неожиданными, а сюрпризы приятными', 'чтобы ты сам радовал себя почаще', 'чтобы год подарил новые знакомства и тёплые встречи',
+    'чтобы дорога всегда была ровной', 'чтобы счастье было не редким гостем, а постоянным жителем', 'чтобы следующий Новый год ты встретил ещё радостнее'
+  ];
+  var tasks = [
+    'Включи гирлянду, выключи большой свет и посиди минуту, глядя на огоньки',
+    'Напиши человеку, которого давно не слышал, три тёплых слова и пожелай ему хорошей зимы',
+    'Включи любимую новогоднюю песню и потанцуй, даже если никто не видит',
+    'Загадай желание на Новый год, запиши его на бумажке и спрячь. В январе достанешь и прочтёшь',
+    'Вырежи из бумаги снежинку и приклей её на окно',
+    'Завари самый уютный напиток: какао, чай с мандарином или горячий шоколад, и выпей его не спеша',
+    'Вспомни три хороших события этого года и расскажи о них кому-нибудь',
+    'Добавь дому одну новогоднюю деталь: ленточку, шарик или веточку в вазе',
+    'Найди старую новогоднюю игрушку или открытку и вспомни, откуда она у тебя',
+    'Позвони близкому человеку и скажи «с наступающим!»',
+    'Выйди на улицу на пять минут, подыши морозным воздухом и найди самую красивую новогоднюю подсветку',
+    'Придумай смешное прозвище для своего Деда Мороза и расскажи его домашним',
+    'Составь список из трёх подарков, которые хочешь сделать своими руками или от души',
+    'Съешь мандарин и на каждую дольку загадай по маленькому желанию',
+    'Посмотри десять минут любимого новогоднего фильма',
+    'Напиши любимому человеку сообщение или открытку с добрым пожеланием на год',
+    'Сфотографируй самый новогодний уголок дома и отправь фото другу',
+    'Сделай доброе дело для незнакомого человека: улыбнись, придержи дверь или оставь добрый комментарий',
+    'Расскажи вслух или напиши историю самого запомнившегося новогоднего праздника из детства',
+    'Возьми плед, тёплые носки и книгу и устрой себе пятнадцать минут тишины',
+    'Составь два списка: что оставишь в старом году и что возьмёшь с собой в новый',
+    'Купи себе или близкому одну сладость к празднику',
+    'Придумай новогодний тост и произнеси его вслух',
+    'Похвали себя вслух за то, что получилось в этом году',
+    'Запиши 5 дел на декабрь и январь, которые точно успеешь: например, сходить на каток или испечь печенье',
+    'Напиши письмо самому себе, которое прочтёшь через год: что у тебя сейчас происходит и о чём мечтаешь',
+    'Проведи вечер без телефона: почитай, поговори с близкими или займись чем-нибудь руками',
+    'Составь новогодний плейлист из 15 песен и включи его дома',
+    'Разбери одну полку или ящик и отложи ненужные вещи',
+    'Отправь три открытки людям, с которыми давно не общался (можно электронные)',
+    'Сделай своими руками новогоднюю игрушку или украшение из бумаги, ниток или картона',
+    'Сфотографируй зимний город или новогодний декор и выбери три лучших кадра',
+    'Испеки печенье, пряники или другой зимний десерт',
+    'Прочитай вслух зимнюю сказку или рассказ себе или близким',
+    'Сделай «снежный шар»: поставь в банку маленькую фигурку, залей водой с блёстками и закрой крышку',
+    'Придумай новогодний квиз из 10 вопросов для друзей или семьи',
+    'Красиво упакуй подарок: в крафтовую бумагу, ленту или ткань',
+    'Приготовь блюдо по рецепту, который раньше не пробовал',
+    'Пересмотри старые фото и выбери 10 любимых для семейного альбома',
+    'Напиши три пожелания на следующий год на бумажках, сложи их в банку и поставь на видное место',
+    'Подготовь маленький сюрприз для друга или коллеги: открытку, конфету или записку',
+    'Сделай новогодний венок на дверь из веток, картона или ткани',
+    'Свари новый горячий напиток: какао с пряностями или морс из замороженных ягод',
+    'Напиши три коротких поздравления и отправь их в чат или соцсети',
+    'Скажи спасибо или сделай комплимент трём людям',
+    'Придумай новую новогоднюю традицию для семьи или друзей: например, каждый год печь одно и то же печенье',
+    'Составь календарь на январь: впиши планы и по одному приятному событию на неделю',
+    'Устрой вечер караоке с новогодними песнями',
+    'Составь список из пяти книг или фильмов на зиму',
+    'Запиши рецепт семейного блюда, который давно хотелось сохранить',
+    'Потянись и подвигайся 15 минут под спокойную зимнюю музыку',
+    'Сделай новогодний декор из шишек, веток или сушёных апельсинов',
+    'Сходи на каток или устрой танцы дома',
+    'Приготовь завтрак-сюрприз для близкого человека',
+    'Устрой вечер без готовки: закажи еду или собери простую тарелку и проведи время вместе',
+    'Выбери или сделай ароматическую свечу для зимних вечеров и зажги её',
+    'Удали лишние фото за год на телефоне: дубли, размытые снимки и скриншоты',
+    'Проверь подарки: подпиши, упакуй и спрячь до праздника',
+    'Проведи вечер настольных игр с близкими или друзьями'
+  ];
+  var goods = [
+    { name: 'Товар 1', price: 'цена' }, { name: 'Товар 2', price: 'цена' },
+    { name: 'Товар 3', price: 'цена' }, { name: 'Товар 4', price: 'цена' }
+  ];
+
+  var nd = new Date();
+  var dayN = Math.floor(Date.UTC(nd.getFullYear(), nd.getMonth(), nd.getDate()) / 86400000);
+  var wish = wishes[(dayN * 7) % wishes.length];
+  var task = tasks[(dayN * 7) % tasks.length];
+
+  function plural(n) {
+    var a = n % 10, b = n % 100;
+    return a === 1 && b !== 11 ? 'день' : (a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'дня' : 'дней');
+  }
+  var isJan1 = nd.getMonth() === 0 && nd.getDate() === 1;
+  var daysLeft = Math.round((new Date(nd.getFullYear() + 1, 0, 1) - new Date(nd.getFullYear(), nd.getMonth(), nd.getDate())) / 864e5);
+  var leftText = isJan1 ? 'Новый год уже наступил, а я без подарков' : 'до Нового года всего ' + daysLeft + ' ' + plural(daysLeft);
+  $('chip').textContent = isJan1 ? 'С Новым годом!' : 'До Нового года: ' + daysLeft + ' ' + plural(daysLeft);
+
+  function fill(x) {
+    return x.replace('{left}', leftText).replace('{wish}', wish).replace('{task}', task);
+  }
+
+  // ================= история =================
+  // t: in (Дед Мороз или who), me (ты), narr (рассказчик), card (карточка с наградой)
+  var visited = false;
+  try { visited = localStorage.getItem('nyV3') === '1'; localStorage.setItem('nyV3', '1'); } catch (e) {}
+
+  var story = {
+    start: {
+      msgs: function () {
+        return visited ? [
+          { x: 'О, ты вернулся! Я как раз хотел тебе написать.' },
+          { x: 'Представляешь, мешок опять пропал. Помощь нужна срочно: {left}.' }
+        ] : [
+          { x: 'Ох, наконец-то кто-то зашёл! Это Дед Мороз.' },
+          { x: 'Выручай, беда! У меня пропал мешок с подарками.' },
+          { x: 'А {left}. Поможешь найти?' }
+        ];
+      },
+      choices: [{ l: 'Конечно, помогу!', n: 'quest' }, { l: 'А ты точно настоящий Дед Мороз?', n: 'doubt' }]
+    },
+    doubt: {
+      msgs: [
+        { x: 'Обижаешь! Борода настоящая. Потрогать, правда, по телефону не получится.' },
+        { x: 'Ну так что, поможешь?' }
+      ],
+      choices: [{ l: 'Ладно, помогу', n: 'quest' }]
+    },
+    quest: {
+      msgs: [
+        { x: 'Спасибо! Тогда слушай. Последний раз я видел мешок возле конюшни.' },
+        { x: 'Но есть ещё мастерская эльфов, они иногда берут мешок поиграть. Куда сначала?' }
+      ],
+      choices: [{ l: 'К оленям', n: 'deer' }, { l: 'В мастерскую эльфов', n: 'elves' }]
+    },
+    deer: {
+      msgs: [
+        { x: 'Ну как там?' },
+        { t: 'narr', x: 'Олени сидят и дружно жуют. Ящик мандаринов, который Дед готовил на праздник, пустой.' },
+        { t: 'narr', x: 'Рудольф икает, нос светится красным. Кажется, объелись.' }
+      ],
+      choices: [
+        { l: 'Дать оленям воды', n: 'snow', reply: [
+          { who: 'Рудольф', x: 'Спасибо, добрый человек!' },
+          { who: 'Рудольф', x: 'Но видел я, кто тащил мешок. Круглый такой, с морковкой вместо носа.' }] },
+        { l: 'Спросить, куда делся мешок', n: 'snow', reply: [
+          { who: 'Рудольф', x: 'Да мы его не брали. Мы мандарины брали.' },
+          { who: 'Рудольф', x: 'Но видел я, кто тащил мешок. Круглый такой, с морковкой вместо носа.' }] }
+      ]
+    },
+    elves: {
+      msgs: [
+        { x: 'Ну как там?' },
+        { t: 'narr', x: 'Эльфы сидят с табличками «Хотим пряников!» и «Пряники или забастовка».' },
+        { who: 'Эльф', x: 'Мешок? Не видели. Но снеговик с утра что-то таскал и делал вид, что ничего не происходит.' }
+      ],
+      choices: [
+        { l: 'Пообещать пряники', n: 'snow', reply: [{ who: 'Эльфы', x: 'Ура! Тогда ищи у снеговика!' }] },
+        { l: 'Сказать, что не время для забастовок', n: 'snow', reply: [{ who: 'Эльф', x: 'Ладно. Но пряники мы запомним. Ищи у снеговика.' }] }
+      ]
+    },
+    snow: {
+      msgs: [
+        { x: 'Снеговик? Так вот кто тут шалит! Ищи его скорее.' },
+        { t: 'narr', x: 'Снеговик сидит на огромном мешке и делает вид, что это кресло.' },
+        { who: 'Снеговик', x: 'Что? Я просто сижу. Совсем не на подарках.' }
+      ],
+      choices: [
+        { l: 'Попросить вернуть по-хорошему', n: 'end', reply: [
+          { who: 'Снеговик', x: 'Я не воровал. Я мешок грел! Он стоял на морозе и совсем замёрз.' },
+          { who: 'Снеговик', x: 'Ладно, забирай. Только скажи Деду, что я хороший.' }] },
+        { l: 'Рассмешить его', n: 'end', reply: [
+          { t: 'me', x: 'Почему снеговик не ходит на свидания?' },
+          { who: 'Снеговик', x: 'Почему?' },
+          { t: 'me', x: 'Потому что тает от волнения.' },
+          { t: 'narr', x: 'Снеговик хохочет так, что чуть не тает, и сам отдаёт мешок.' }] }
+      ]
+    },
+    end: {
+      msgs: [
+        { x: 'Ура! Мешок нашёлся! Ты лучший помощник за весь этот год.' },
+        { x: 'В награду у меня для тебя пожелание. Желаю тебе в новом году, {wish}.' },
+        { x: 'И маленькое задание на сегодня, чтобы праздник пришёл чуть раньше: {task}.' }
+      ],
+      choices: [{ l: 'Сделаю, спасибо!', n: 'reward' }]
+    },
+    reward: {
+      msgs: [
+        { x: 'Вот это да! А я тебе кое-что приготовил. Заглянул в мешок и нашёл вещи специально для тебя.' },
+        { t: 'card' },
+        { x: 'Спасибо, что помог. До встречи в Новом году!' }
+      ],
+      choices: [{ l: 'Сыграть ещё раз', n: '__restart' }]
+    }
+  };
+
+  // ================= движок чата =================
+  var fast = false, busy = false;
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, fast ? 40 : ms); }); }
+  document.addEventListener('pointerdown', function () { if (busy) fast = true; }); // нажатие пропускает паузы
+  function scrollDown() { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }
+  function toast(txt) {
+    $('toast').textContent = txt; $('toast').hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { $('toast').hidden = true; }, 1800);
+  }
+  function add(m) {
+    var d = document.createElement('div');
+    d.className = 'm ' + (m.t || 'in');
+    if (m.who) { var w = document.createElement('span'); w.className = 'who2'; w.textContent = m.who; d.appendChild(w); }
+    d.appendChild(document.createTextNode(fill(m.x)));
+    $('chat').appendChild(d); scrollDown();
+    return d;
+  }
+  function copyText(txt, msg) {
+    function ok() { toast(msg); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { toast('Не получилось скопировать'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+  }
+  function showCard() {
+    var c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = '<div class="t">Промокод от Medos</div><div class="code">SALE</div>' +
+      '<button class="cp">Скопировать промокод</button>' +
+      '<div class="goods">' + goods.map(function (g) {
+        return '<div class="good"><div class="pic">фото товара</div><h3>' + g.name + '</h3><div class="price">' + g.price + '</div></div>';
+      }).join('') + '</div>' +
+      '<button class="sh g">Рассказать другу</button>';
+    c.querySelector('.cp').onclick = function () { copyText('SALE', 'Промокод SALE скопирован'); };
+    c.querySelector('.sh').onclick = function () {
+      var text = 'Я помог Деду Морозу найти мешок с подарками, попробуй и ты!', url = location.origin + location.pathname;
+      if (navigator.share) navigator.share({ title: 'Чат с Дедом Морозом', text: text, url: url }).catch(function () {});
+      else copyText(text + ' ' + url, 'Ссылка скопирована, отправь другу');
+    };
+    $('chat').appendChild(c);
+    setTimeout(function () { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+  }
+  async function say(m) {
+    if (m.t === 'card') { showCard(); await wait(1200); return; }
+    if (m.t === 'me') { await wait(300); add(m); await wait(350); return; }
+    if (m.t === 'narr') { await wait(700); add(m); await wait(500); return; }
+    $('status').textContent = 'печатает...';
+    var typing = document.createElement('div');
+    typing.className = 'm in dots'; typing.innerHTML = '<span></span><span></span><span></span>';
+    $('chat').appendChild(typing); scrollDown();
+    await wait(Math.min(1700, 450 + fill(m.x).length * 13));
+    typing.remove(); $('status').textContent = 'в сети';
+    add(m); await wait(250);
+  }
+  async function run(list) { for (var i = 0; i < list.length; i++) await say(list[i]); }
+  async function go(id) {
+    busy = true; fast = false; $('choices').hidden = true;
+    var n = story[id];
+    await run(typeof n.msgs === 'function' ? n.msgs() : n.msgs);
+    busy = false; showChoices(n.choices);
+  }
+  function showChoices(list) {
+    var box = $('choiceIn'); box.innerHTML = '';
+    list.forEach(function (c, i) {
+      var b = document.createElement('button');
+      b.textContent = c.l; if (i > 0) b.className = 'g';
+      b.onclick = async function () {
+        $('choices').hidden = true; busy = true; fast = false;
+        add({ t: 'me', x: c.l });
+        if (c.reply) { await wait(400); await run(c.reply); }
+        if (c.n === '__restart') { $('chat').innerHTML = ''; visited = true; go('start'); return; }
+        go(c.n);
+      };
+      box.appendChild(b);
+    });
+    $('choices').hidden = false; scrollDown();
+  }
+
+  // ================= снег =================
+  var snow = $('snow'), sc = snow.getContext('2d'), PW, PH, flakes = [], i;
+  function resize() { PW = snow.width = window.innerWidth; PH = snow.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+  for (i = 0; i < 80; i++) flakes.push({ x: Math.random() * PW, y: Math.random() * PH, r: 1 + Math.random() * 3, v: .4 + Math.random() * 1.2, p: Math.random() * 6 });
+  function frame() {
+    sc.clearRect(0, 0, PW, PH);
+    sc.fillStyle = 'rgba(255,255,255,.85)';
+    flakes.forEach(function (f) {
+      f.y += f.v; f.p += .02; f.x += Math.sin(f.p) * .5;
+      if (f.y > PH + 5) { f.y = -5; f.x = Math.random() * PW; }
+      sc.beginPath(); sc.arc(f.x, f.y, f.r, 0, 6.3); sc.fill();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+
+  go('start');
+})();
+</script>
+</body>
+</html>
