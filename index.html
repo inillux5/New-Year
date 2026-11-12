@@ -82,12 +82,14 @@
   }
   button:hover { filter: brightness(1.1); }
 
-  .goods { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-  .good { background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; overflow: hidden; text-align: center; }
-  .good .pic { height: 140px; display: grid; place-items: center; font-size: 15px; opacity: .9;
-    background: repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 12px, rgba(255,255,255,.12) 12px 24px); }
-  .good h3 { margin: 12px 8px 4px; font-size: 17px; }
-  .good .price { color: var(--gold); margin-bottom: 12px; }
+  .goods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 700px) { .goods { grid-template-columns: repeat(4, 1fr); } }
+  .good { display: block; color: inherit; text-decoration: none; background: var(--card); border: 1px solid rgba(255,255,255,.15); border-radius: 16px; overflow: hidden; text-align: center; }
+  .good img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; background: rgba(255,255,255,.06); }
+  .good h3 { margin: 10px 8px 2px; font-size: 14px; line-height: 1.25; }
+  .good .clr { font-size: 13px; opacity: .75; }
+  .good .price { color: var(--gold); margin: 2px 8px 0; }
+  .good .go { display: inline-block; margin: 8px 0 12px; padding: 6px 14px; border-radius: 999px; background: var(--gold); color: #3a2200; font-size: 13px; font-weight: bold; }
 
   [hidden] { display: none !important; }
   .testbar { position: fixed; z-index: 20; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
@@ -334,17 +336,36 @@
     'Проверь подарки: подпиши, упакуй и спрячь до праздника',
     'Проведи вечер настольных игр с близкими или друзьями'
   ];
+  // товары Medos на Ozon (12.11): фото — слайд 1 карточки, ссылки из столбца "Ссылка Ozon" в "Мастере"; price добавим позже
+  var OZ = 'https://www.ozon.ru/product/';
   var goods = [
-    { name: 'Товар 1', price: 'цена' }, { name: 'Товар 2', price: 'цена' },
-    { name: 'Товар 3', price: 'цена' }, { name: 'Товар 4', price: 'цена' }
+    { name: 'Дед Мороз на елку с сюрпризом, 3 шт', clr: 'красный', img: 'ng01-red', url: '6329403784' },
+    { name: 'Дед Мороз на елку с сюрпризом, 3 шт', clr: 'зелёный', img: 'ng01-green', url: '6329400951' },
+    { name: 'Дед Мороз на елку с сюрпризом, 3 шт', clr: 'золотой', img: 'ng01-gold', url: '6329401406' },
+    { name: 'Дед Мороз на елку с сюрпризом, 3 шт', clr: 'белый', img: 'ng01-w', url: '6329400574' },
+    { name: 'Елочка на елку с сюрпризом, 3 шт', clr: 'красный', img: 'ng02-red', url: '6329400861' },
+    { name: 'Елочка на елку с сюрпризом, 3 шт', clr: 'зелёный', img: 'ng02-green', url: '6329402804' },
+    { name: 'Елочка на елку с сюрпризом, 3 шт', clr: 'золотой', img: 'ng02-gold', url: '6329401659' },
+    { name: 'Елочка на елку с сюрпризом, 3 шт', clr: 'белый', img: 'ng02-w', url: '6329399696' },
+    { name: 'Снеговик на елку с сюрпризом, 3 шт', clr: 'красный', img: 'ng03-red', url: '6329401489' },
+    { name: 'Снеговик на елку с сюрпризом, 3 шт', clr: 'зелёный', img: 'ng03-green', url: '6329400168' },
+    { name: 'Снеговик на елку с сюрпризом, 3 шт', clr: 'золотой', img: 'ng03-gold', url: '6329400607' },
+    { name: 'Снеговик на елку с сюрпризом, 3 шт', clr: 'белый', img: 'ng03-w', url: '6329402738' }
   ];
+  // 4 случайных при каждом заходе (тасование Фишера-Йетса)
+  for (var gi = goods.length - 1; gi > 0; gi--) {
+    var gj = Math.floor(Math.random() * (gi + 1)), gt = goods[gi]; goods[gi] = goods[gj]; goods[gj] = gt;
+  }
+  goods = goods.slice(0, 4);
   var nd = new Date();
   var dayN = Math.floor(Date.UTC(nd.getFullYear(), nd.getMonth(), nd.getDate()) / 86400000);
   var dayKey = String(dayN);
   $('wish').textContent = wishes[(dayN * 7) % wishes.length] + '.';
   $('task').textContent = tasks[(dayN * 7) % tasks.length] + '.';
   $('goods').innerHTML = goods.map(function (g) {
-    return '<div class="good"><div class="pic">фото товара</div><h3>' + g.name + '</h3><div class="price">' + g.price + '</div></div>';
+    return '<a class="good" href="' + OZ + g.url + '" target="_blank" rel="noopener"><img src="img/' + g.img + '.jpg" alt="' + g.name + ', ' + g.clr + '" loading="lazy">' +
+      '<h3>' + g.name + '</h3><div class="clr">' + g.clr + '</div>' + (g.price ? '<div class="price">' + g.price + '</div>' : '') +
+      '<span class="go">Смотреть на Ozon</span></a>';
   }).join('');
 
   // ================= таймер =================
